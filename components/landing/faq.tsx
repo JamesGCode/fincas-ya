@@ -1,0 +1,78 @@
+"use client";
+
+import { motion } from "framer-motion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+const faqData = [
+  {
+    question: "¿Cómo puedo reservar una finca?",
+    answer:
+      "Para reservar, simplemente navega a la finca de tu interés, selecciona las fechas disponibles y haz clic en 'Reservar'. Te guiaremos paso a paso para completar el proceso de pago seguro.",
+  },
+  {
+    question: "¿Qué incluye el precio del alquiler?",
+    answer:
+      "El precio incluye el uso completo de las instalaciones, piscina, zonas verdes, BBQ y servicios básicos como agua y electricidad. Algunos servicios adicionales como chef, transporte o decoración tienen un costo extra.",
+  },
+  {
+    question: "¿Puedo llevar mascotas?",
+    answer:
+      "Depende de cada propiedad. Las fincas marcadas como 'Pet Friendly' permiten mascotas. Consulta los detalles de cada finca antes de reservar.",
+  },
+  {
+    question: "¿Cuál es la política de cancelación?",
+    answer:
+      "Ofrecemos cancelación gratuita hasta 7 días antes de la llegada para la mayoría de las propiedades. Las políticas específicas se muestran claramente en cada listado.",
+  },
+  {
+    question: "¿Hay depósito de seguridad?",
+    answer:
+      "Sí, se requiere un depósito reembolsable que varía según la propiedad. Este se devuelve dentro de 48 horas después del checkout si no hay daños.",
+  },
+];
+
+export function FAQ() {
+  return (
+    <section className="py-32 bg-linear-to-b from-background via-accent/5 to-background px-8">
+      <div className="container mx-auto px-6 pt-20">
+        <div className="flex-1 mb-16 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold font-display mb-5 tracking-tight">
+            Preguntas Frecuentes
+          </h2>
+          <p className="text-muted-foreground max-w-xl text-lg text-center mx-auto">
+            Todo lo que necesitas saber antes de reservar.
+          </p>
+        </div>
+
+        <div className="max-w-3xl mx-auto">
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue="item-0"
+            className="w-full space-y-3"
+          >
+            {faqData.map((item, index) => (
+              <AccordionItem
+                key={index}
+                value={`item-${index}`}
+                className="border border-border/30 rounded-2xl px-6 bg-card/20 backdrop-blur-sm overflow-hidden data-[state=open]:bg-card/40 transition-colors"
+              >
+                <AccordionTrigger className="text-left text-base font-semibold cursor-pointer py-5 [&[data-state=open]>svg]:rotate-45">
+                  {item.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground pb-5 text-sm leading-relaxed">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </div>
+    </section>
+  );
+}
