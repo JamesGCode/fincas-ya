@@ -19,11 +19,11 @@ export function Recommendations({ fincas, currentId }: RecommendationsProps) {
 
   return (
     <section className="py-16 border-t border-border/30 mt-8">
-      <h2 className="text-xl md:text-2xl font-bold font-display mb-8 tracking-tight">
+      <h2 className="text-xl md:text-2xl font-bold font-display max-md:px-3 mb-8 tracking-tight">
         También te puede interesar
       </h2>
 
-      <ScrollFade dragToScroll className="pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <ScrollFade dragToScroll className="pb-4 px-4">
         <div className="flex gap-5 w-full">
           {recommendations.map((finca, index) => (
             <motion.div
@@ -51,7 +51,7 @@ export function Recommendations({ fincas, currentId }: RecommendationsProps) {
                   </div>
                 </div>
                 <div className="flex items-center justify-between px-1">
-                  <span className="text-primary font-bold text-sm">
+                  <span className="font-bold text-sm">
                     ${finca.price.toLocaleString("es-CO")}
                     <span className="text-muted-foreground text-xs font-normal">
                       {" "}

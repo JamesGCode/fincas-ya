@@ -13,10 +13,10 @@ export function GuestFavorite({ rating }: GuestFavoriteProps) {
         {/* Shine effect overlay */}
         <div className="absolute inset-0 bg-linear-to-tr from-white/20 to-transparent pointer-events-none" />
 
-        <div className="flex items-center gap-4 relative z-10">
+        <div className="flex items-center md:gap-4 gap-2 relative z-10">
           <div className="flex items-center gap-1">
             <div className="text-center px-1">
-              <p className="text-sm font-extrabold leading-tight text-neutral-900 font-display uppercase tracking-tight">
+              <p className="md:text-sm text-xs font-extrabold leading-tight text-neutral-900 font-display uppercase tracking-tight">
                 Favorito entre
                 <br />
                 huéspedes
@@ -24,7 +24,7 @@ export function GuestFavorite({ rating }: GuestFavoriteProps) {
             </div>
           </div>
 
-          <div className="h-10 w-px bg-neutral-900/20 mx-2" />
+          <div className="h-10 w-px bg-neutral-900/20 md:mx-2" />
 
           <p className="text-neutral-800 text-xs font-bold max-w-[180px] leading-snug">
             Uno de los alojamientos más populares y mejor valorados.
@@ -33,14 +33,14 @@ export function GuestFavorite({ rating }: GuestFavoriteProps) {
 
         <div className="flex items-center gap-3 pr-2 relative z-10">
           <div className="text-right">
-            <p className="text-3xl font-black text-neutral-900 leading-none mb-0.5 drop-shadow-sm">
+            <p className="md:text-3xl text-xl font-black text-neutral-900 leading-none mb-0.5 drop-shadow-sm">
               {rating.toFixed(2)}
             </p>
             <div className="flex gap-0.5 justify-end">
               {[...Array(5)].map((_, i) => (
                 <StarIcon
                   key={i}
-                  className="w-3 h-3 fill-neutral-900 text-neutral-900"
+                  className="size-2 md:size-3 fill-neutral-900 text-neutral-900"
                 />
               ))}
             </div>

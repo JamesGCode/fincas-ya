@@ -17,21 +17,11 @@ export function Navbar() {
   });
 
   return (
-    <motion.header
-      className={`absolute top-0 left-0 right-0 z-50 transition-all duration-300 py-5`}
-      // className={`absolute top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      //   isScrolled
-      //     ? "bg-background/80 backdrop-blur-xl py-3 border-b border-border/50"
-      //     : "bg-transparent py-5"
-      // }`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="container mx-auto px-6 flex items-center justify-between">
+    <header className="container mx-auto z-50 transition-all duration-300 py-5">
+      <div className="px-6 flex items-center justify-between">
         <Link href="/" className="flex items-center">
           <Image
-            src="/fincas-ya-logo.png"
+            src="/favicon.png"
             alt="FincasYa"
             width={120}
             height={40}
@@ -39,43 +29,6 @@ export function Navbar() {
             priority
           />
         </Link>
-
-        {/* Desktop Navigation */}
-        {/* <nav className="hidden md:flex items-center gap-1">
-          <Link
-            href="/"
-            className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/5 rounded-lg transition-colors"
-          >
-            Inicio
-          </Link>
-          <Link
-            href="#"
-            className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/5 rounded-lg transition-colors"
-          >
-            Fincas
-          </Link>
-          <Link
-            href="#"
-            className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/5 rounded-lg transition-colors"
-          >
-            Servicios
-          </Link>
-          <Link
-            href="#"
-            className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/5 rounded-lg transition-colors"
-          >
-            Nosotros
-          </Link>
-        </nav> */}
-
-        {/* <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" className="text-sm font-medium">
-            Iniciar Sesión
-          </Button>
-          <Button className="rounded-full px-5 text-sm font-semibold">
-            Registrarse
-          </Button>
-        </div> */}
 
         {/* Mobile Toggle */}
         <button
@@ -136,6 +89,6 @@ export function Navbar() {
           </nav>
         </motion.div>
       )}
-    </motion.header>
+    </header>
   );
 }

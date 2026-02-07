@@ -82,7 +82,7 @@ export function FincaCard({ finca, index }: FincaCardProps) {
                 </div>
 
                 <div className="text-right shrink-0">
-                  <p className="text-xl font-bold text-primary">
+                  <p className="text-xl font-bold text-white">
                     ${finca.price.toLocaleString("es-CO")}
                   </p>
                   <span className="text-xs text-muted-foreground">/noche</span>

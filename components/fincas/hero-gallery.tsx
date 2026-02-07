@@ -63,9 +63,9 @@ export function HeroGallery({ title, images, video }: HeroGalleryProps) {
   }, [api]);
 
   return (
-    <section className="pt-24 pb-8">
+    <section className="md:pt-14 pb-8">
       {/* Back button */}
-      <div className="container mx-auto md:px-4 mb-8 px-0">
+      {/* <div className="container mx-auto md:px-4 mb-8 px-0">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
@@ -73,7 +73,7 @@ export function HeroGallery({ title, images, video }: HeroGalleryProps) {
           <ArrowLeft className="w-4 h-4" />
           Volver a fincas
         </Link>
-      </div>
+      </div> */}
 
       <div className="container mx-auto px-0 md:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-auto lg:h-[70vh]">

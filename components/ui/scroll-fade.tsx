@@ -179,28 +179,6 @@ export const ScrollFade = forwardRef<HTMLDivElement, ScrollFadeProps>(
           </div>
         </div>
 
-        {(axis === "horizontal" || axis === "both") && showLeft && (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute left-0 top-0 h-full w-32 z-20 transition-opacity duration-300"
-            style={{
-              background:
-                "linear-gradient(to right, var(--background) 0%, var(--background) 20%, transparent 100%)",
-            }}
-          />
-        )}
-
-        {(axis === "horizontal" || axis === "both") && showRight && (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute right-0 top-0 h-full w-32 z-20 transition-opacity duration-300"
-            style={{
-              background:
-                "linear-gradient(to left, var(--background) 0%, var(--background) 20%, transparent 100%)",
-            }}
-          />
-        )}
-
         {(axis === "vertical" || axis === "both") && showTop && (
           <div
             aria-hidden

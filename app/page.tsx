@@ -5,7 +5,7 @@ import { FincaList } from "@/components/landing/finca-list";
 
 export default function Home() {
   return (
-    <main className="relative min-h-screen bg-background overflow-x-hidden">
+    <main className="relative min-h-screen bg-[#131313] overflow-x-hidden">
       <div className="relative z-10">
         <Navbar />
         <FincaList />

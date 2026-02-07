@@ -4,7 +4,7 @@ import Link from "next/link";
 import { fincas } from "@/lib/data";
 import { Navbar } from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
-import { Recommendations } from "@/components/common/recommendations";
+import { Recommendations } from "@/components/fincas/recommendations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -43,17 +43,21 @@ export default async function FincaDetailPage({ params }: Props) {
         video={finca.video}
       />
       {/* Content */}
-      <section className="pb-16 relative z-10 -mt-8 md:mt-0">
+      <section className="pb-16 relative z-99999 -mt-14 bg-[#131313s] rounded-t-3xl md:rounded-none md:mt-0">
         <div className="container mx-auto px-0 md:px-6 lg:px-6">
           <div className="grid lg:grid-cols-3 max-lg:gap-10">
             {/* Main Info */}
             <div className="lg:col-span-2 lg:mr-10">
               <div
                 className={cn(
-                  "bg-card/90 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none rounded-t-3xl md:rounded-none border-t border-x md:border-none border-border/50 p-6 md:p-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] md:shadow-none max-md:-mt-10",
-                  isFavorite && "md:border-l md:border-primary/10 md:pl-8",
+                  "py-6 max-md:px-5 max-md:pt-8 md:p-0 border-none",
+                  isFavorite && "md:border-l md:border-primary/10",
                 )}
               >
+                <h1 className="text-3xl md:text-5xl font-bold font-display mb-6 tracking-tight">
+                  {finca.title}
+                </h1>
+
                 <div className="flex flex-wrap items-center gap-3 mb-4 mt-2 md:mt-8">
                   <Badge variant="secondary" className="gap-1">
                     <Star className="w-3 h-3 fill-current" />
@@ -68,14 +72,10 @@ export default async function FincaDetailPage({ params }: Props) {
                     {finca.capacity} Personas
                   </Badge>
                 </div>
-
-                <h1 className="text-3xl md:text-5xl font-bold font-display mb-6 tracking-tight">
-                  {finca.title}
-                </h1>
               </div>
 
               {/* Mobile Reel (Video) - Only visible on mobile */}
-              <div className="block lg:hidden mb-12 max-md:-mt-6 rounded-2xl overflow-hidden shadow-2xl border border-border/20">
+              <div className="block lg:hidden mb-12 max-md:-mt-6 rounded-2xl overflow-hidden shadow-2xl border border-border/20 mx-3">
                 {finca.video && (
                   <div className="relative w-full h-[60vh]">
                     <video
@@ -109,7 +109,7 @@ export default async function FincaDetailPage({ params }: Props) {
               </p>
 
               {isFavorite && (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 max-md:px-3">
                   <GuestFavorite rating={finca.rating} />
                 </div>
               )}
@@ -267,7 +267,7 @@ export default async function FincaDetailPage({ params }: Props) {
                   <span className="text-sm text-muted-foreground block mb-1">
                     Desde
                   </span>
-                  <div className="text-3xl font-bold text-primary">
+                  <div className="text-3xl font-bold">
                     ${finca.price.toLocaleString("es-CO")}
                     <span className="text-base font-normal text-muted-foreground">
                       {" "}

@@ -2,8 +2,8 @@
 
 import { useRef, useState, useMemo } from "react";
 import { fincas } from "@/lib/data";
-import { FincaCard } from "../common/finca-card";
-import { Filters, FilterValues } from "../common/filters";
+import { FincaCard } from "@/components/fincas/finca-card";
+import { Filters, FilterValues } from "@/components/fincas/filters";
 import { ScrollFade } from "../ui/scroll-fade";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
@@ -72,36 +72,58 @@ export function FincaList() {
       f.location.toLowerCase().includes("armenia"),
   );
 
-  const shouldShowSection = (section: DestinationTab) => {
-    if (activeTab === "todas") return true;
-    return activeTab === section;
-  };
-
   return (
-    <section className="pt-32 pb-48 container mx-auto px-4 lg:px-20">
+    <section className="pt-14 pb-48 container mx-auto lg:px-20">
       <div className="text-center mb-12">
-        {/* <Image
+        <Image
           src="/icons/fincas-ya-logo.png"
           alt="Fincas Ya"
           width={100}
           height={100}
           className="w-56 h-auto object-contain mx-auto mb-8 pointer-events-none select-none"
-        /> */}
+        />
         <h2 className="text-3xl md:text-4xl font-bold font-display mb-2 tracking-tight">
-          🏡 Explora Todas las Fincas
+          Explora Todas las Fincas
         </h2>
         <p className="text-muted-foreground max-w-xl mx-auto">
-          Encuentra el lugar perfecto para tu próxima escapada ✨
+          ✨ Encuentra el lugar perfecto para tu próxima escapada ✨
         </p>
       </div>
 
-      <div className="flex justify-center mb-12">
+      {/* Mobile: ScrollFade with pill buttons */}
+      <div className="md:hidden mb-12">
+        <ScrollFade className="px-4">
+          <div className="flex gap-2">
+            {[
+              { value: "todas", label: "🌎 Todas" },
+              { value: "cundinamarca", label: "🏔️ Cundinamarca" },
+              { value: "eje-cafetero", label: "☕ Eje Cafetero" },
+              { value: "tolima", label: "🌴 Tolima" },
+            ].map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value as DestinationTab)}
+                className={`py-2.5 px-5 rounded-full whitespace-nowrap text-sm font-medium transition-all ${
+                  activeTab === tab.value
+                    ? "bg-white text-black shadow-lg"
+                    : "bg-white/10 text-white/80 hover:bg-white/20"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </ScrollFade>
+      </div>
+
+      {/* Desktop: Original Tabs component */}
+      <div className="hidden md:flex justify-center mb-12">
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as DestinationTab)}
           className="w-full max-w-2xl"
         >
-          <TabsList className="grid w-full grid-cols-4 p-1 group-data-[orientation=horizontal]/tabs:h-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
+          <TabsList className="grid w-full grid-cols-4 p-1 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl group-data-[orientation=horizontal]/tabs:h-auto!">
             <TabsTrigger value="todas" className="py-2.5 rounded-lg">
               🌎 Todas
             </TabsTrigger>
@@ -170,7 +192,7 @@ export function FincaList() {
         ) : (
           <div className="space-y-12">
             {/* Grid display for specific region */}
-            <div>
+            <div className="max-md:px-3">
               <h3 className="text-2xl md:text-3xl font-bold font-display tracking-tight mb-8 capitalize flex items-center gap-2">
                 {activeTab === "cundinamarca" && "🏔️ Cundinamarca"}
                 {activeTab === "eje-cafetero" && "☕ Eje Cafetero"}
@@ -235,7 +257,7 @@ function CarouselSection({
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <div>
+        <div className="max-md:px-4">
           <h3 className="text-2xl md:text-3xl font-bold font-display tracking-tight flex items-center gap-2">
             {icon}
             {title}
@@ -262,7 +284,7 @@ function CarouselSection({
         </div>
       </div>
 
-      <ScrollFade ref={scrollRef} className="pb-4 -mx-4 px-4 md:mx-0 md:px-0">
+      <ScrollFade ref={scrollRef} className="pb-4 px-4">
         <div className="flex gap-6">
           {fincas.map((finca, index) => (
             <div key={finca.id} className="w-[300px] md:w-[340px] shrink-0">
