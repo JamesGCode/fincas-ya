@@ -32,7 +32,7 @@ export default async function FincaDetailPage({ params }: Props) {
       className={cn(
         "min-h-screen bg-background px-0 md:px-12 lg:px-20 transition-colors duration-700",
         isFavorite &&
-          "bg-linear-to-b from-neutral-50  to-white dark:from-[#0a0a0a] dark:to-background",
+          "bg-linear-to-b  from-neutral-50  to-white dark:from-[#0a0a0a] dark:to-background",
       )}
     >
       <Navbar />
