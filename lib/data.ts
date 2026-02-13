@@ -14,6 +14,7 @@ export interface Finca {
     lat: number;
     lng: number;
   };
+  isFavorite?: boolean;
 }
 
 // export const fincas: Finca[] = [
@@ -4445,7 +4446,7 @@ export type FincaConTemporadas = Finca & {
 export const fincas: FincaConTemporadas[] = [
   {
     id: "viota-luxury-house-26-36-pax-viota-cundinamarca",
-    title: "Viotá Luxury House 26- 36 Pax",
+    title: "Viotá Luxury House",
     description:
       "Espectacular CASA PRIVADA DE DESCANSO, ubicada en Viotá - Cundinamarca, Completamente urbana y con acabados de lujo, para que disfrutes en grupo de amigos o familia 👨‍👩‍👧‍👧 Disfruta de excelente clima  soleado 🌞",
     location: "Viotá - Cundinamarca",
@@ -4477,13 +4478,29 @@ export const fincas: FincaConTemporadas[] = [
     ],
     video: "/fincas/lennon/lennon.mp4",
     features: [
-      "Piscina",
+      "Capacidad 36 personas",
+      "5 Habitaciones con aire acondicionado, baño privado y TV",
+      "2 Habitaciones con Ventilador",
+      "8 Baños",
+      "Piscina con Cancha de basket acuática",
       "Jacuzzi",
-      "Wifi",
-      "Aire acondicionado",
-      "Parqueadero",
-      "Cancha",
-      "Billar",
+      "Zona de Bar con Sonido incorporado",
+      "Zona de Asados",
+      "Camas Asoleadoras - Sala Exterior",
+      "Proyector Video Beam",
+      "Cocina Equipada - Sala comedor",
+      "Conexión WIFI SMARTV 60''",
+      "Salón de juegos - Piso 3",
+      "Bolirana Electrónica",
+      "Mesa de Billar",
+      "2 mesas de Ping Pong",
+      "Parrilla de Asados",
+      "Personal de servicio (costo adicional)",
+      "Zona de lavado",
+      "Parqueadero cubierto",
+      "Cancha Múltiple",
+      "Canchas de Tejo",
+      "Cámaras de Seguridad",
     ],
     coordinates: { lat: 5.97, lng: -72.01 },
     seasonPrices: {

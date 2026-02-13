@@ -11,6 +11,7 @@ import {
   DialogTrigger,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   Carousel,
   CarouselContent,
@@ -79,6 +80,17 @@ export function HeroGallery({ title, images, video }: HeroGalleryProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-auto lg:h-[70vh]">
           {/* Carousel - Col Span 2 */}
           <div className="lg:col-span-2 h-[60vh] lg:h-full relative rounded-none md:rounded-2xl overflow-hidden group">
+            <div className="absolute top-4 left-4 z-20">
+              <Link href="/">
+                <Button
+                  size="sm"
+                  className="gap-2 bg-white/90 hover:bg-white text-foreground rounded-full shadow-lg backdrop-blur-sm transition-all hover:scale-105"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span className="text-sm font-medium">Volver</span>
+                </Button>
+              </Link>
+            </div>
             <Carousel
               className="w-full h-full"
               opts={{ loop: true }}

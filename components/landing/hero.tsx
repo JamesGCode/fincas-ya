@@ -1,22 +1,10 @@
 "use client";
 
-import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { SplitText } from "gsap/all";
-import { useMediaQuery } from "react-responsive";
+import { useGSAP } from "@gsap/react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export function Hero() {
-  const isMobile = useMediaQuery({
-    query: "(max-width: 768px)",
-  });
-
-  const isTablet = useMediaQuery({
-    query: "(max-width: 1024px)",
-  });
-
   useGSAP(() => {
     const heroTl = gsap.timeline({
       scrollTrigger: {
@@ -82,42 +70,7 @@ export function Hero() {
               Descubre las mejores fincas de descanso en Colombia, con todas las
               comodidades para tu escapada perfecta.
             </motion.p>
-
-            {/* Contact Button */}
-            {/* <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="mt-8"
-            >
-              <Button
-                size="lg"
-                className="rounded-full px-6 py-6 bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 font-medium group"
-              >
-                Contáctanos
-                <span className="ml-2 w-8 h-8 rounded-full bg-white flex items-center justify-center group-hover:bg-primary transition-colors">
-                  <ArrowRight className="w-4 h-4 text-black group-hover:text-white" />
-                </span>
-              </Button>
-            </motion.div> */}
           </motion.div>
-
-          {/* Right - Feature Text */}
-          {/* <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="max-w-xs text-right lg:text-left"
-          >
-            <h3 className="text-white text-2xl md:text-3xl font-semibold mb-3 leading-tight">
-              Naturaleza
-              <br />y confort
-            </h3>
-            <p className="text-white/60 text-sm leading-relaxed">
-              Experiencias únicas en propiedades verificadas con piscina, zonas
-              verdes y servicios premium.
-            </p>
-          </motion.div> */}
         </div>
       </div>
 

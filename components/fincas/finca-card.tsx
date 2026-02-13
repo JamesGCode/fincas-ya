@@ -18,9 +18,13 @@ import { Finca } from "@/lib/data";
 interface FincaCardProps {
   finca: Finca;
   index: number;
+  badge?: {
+    text: string;
+    color?: "green" | "orange" | "blue";
+  };
 }
 
-export function FincaCard({ finca, index }: FincaCardProps) {
+export function FincaCard({ finca, index, badge }: FincaCardProps) {
   const [isFavorited, setIsFavorited] = useState(false);
 
   return (
@@ -40,6 +44,23 @@ export function FincaCard({ finca, index }: FincaCardProps) {
                 fill
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
+
+              {/* Badge */}
+              {badge && (
+                <div
+                  className={cn(
+                    "absolute top-3 left-3 z-10 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide text-white",
+                    badge.color === "green"
+                      ? "bg-green-600"
+                      : badge.color === "orange"
+                        ? "bg-orange-500"
+                        : "bg-blue-600",
+                  )}
+                >
+                  {badge.text}
+                </div>
+              )}
+
               {/* Favorite Button */}
               <Button
                 size="icon"

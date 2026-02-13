@@ -10,13 +10,13 @@ export function FloatingButton() {
       initial={{ opacity: 0, scale: 0.5 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 1 }}
-      className="fixed bottom-8 right-8 z-100"
+      className="fixed bottom-8 right-8 z-9999"
     >
       <Link
         href="https://wa.me/573000000000"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center bg-white hover:bg-neutral-50 text-neutral-900 h-14 min-w-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 group border border-neutral-200 overflow-hidden"
+        className="flex items-center justify-center bg-[#40c351] hover:bg-[#6ad078] text-neutral-900 h-14 min-w-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 group border border-neutral-200 overflow-hidden"
       >
         <div className="flex items-center justify-center w-14 h-14 shrink-0">
           <Image
