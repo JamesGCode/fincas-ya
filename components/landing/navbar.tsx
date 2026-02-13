@@ -27,18 +27,7 @@ export function Navbar() {
         isHome ? "absolute top-0 px-6" : "relative bg-background px-6 mb-0",
       )}
     >
-      <div className="flex items-center justify-between max-w-7xl mx-auto">
-        <Link href="/" className="flex items-center">
-          <Image
-            src="/favicon.png"
-            alt="FincasYa"
-            width={120}
-            height={40}
-            className="h-8 w-auto"
-            priority
-          />
-        </Link>
-
+      <div className="flex items-center justify-end max-w-7xl mx-auto">
         {/* Desktop Navigation & Actions */}
         <div className="hidden md:flex items-center gap-8">
           <nav className="flex items-center gap-6">

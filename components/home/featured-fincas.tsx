@@ -14,7 +14,7 @@ export function FeaturedFincas({
 }: FeaturedFincasProps) {
   return (
     <section className="container mx-auto px-4 mb-20">
-      <div className="flex items-end justify-between mb-8">
+      <div className="flex items-end justify-between mb-4">
         <div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
             {title}
@@ -23,7 +23,7 @@ export function FeaturedFincas({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 md:gap-y-12">
         {fincas.map((finca, index) => (
           <FincaCardHome
             key={finca.id}

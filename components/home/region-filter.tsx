@@ -23,7 +23,7 @@ export function RegionFilter({
   ];
 
   return (
-    <div className="container mx-auto px-4 mb-12 mt-8">
+    <div className="container mx-auto px-4 md:mb-12 mb-4 mt-8">
       <ScrollFade className="w-full">
         <div className="flex items-center gap-3 pb-4">
           {regions.map((region) => (
