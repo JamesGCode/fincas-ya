@@ -5,15 +5,19 @@ import { FincaCardHome } from "@/components/home/finca-card-home";
 
 interface FeaturedFincasProps {
   fincas: Finca[];
+  title?: string;
 }
 
-export function FeaturedFincas({ fincas }: FeaturedFincasProps) {
+export function FeaturedFincas({
+  fincas,
+  title = "Favoritas entre huéspedes",
+}: FeaturedFincasProps) {
   return (
     <section className="container mx-auto px-4 mb-20">
       <div className="flex items-end justify-between mb-8">
         <div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Favoritas entre huéspedes
+            {title}
           </h2>
           <p className="text-gray-500">{fincas.length} fincas disponibles</p>
         </div>

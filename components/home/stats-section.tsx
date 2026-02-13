@@ -24,7 +24,7 @@ export function StatsSection() {
   ];
 
   return (
-    <div className="relative z-30 -mt-20 container mx-auto px-4 mb-20">
+    <div className="relative z-30 mt-8 md:-mt-20 container mx-auto px-4 mb-20">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
         {stats.map((stat) => (
           <div

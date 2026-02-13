@@ -63,7 +63,7 @@ export function RegionFilter({
               key={region.id}
               onClick={() => onSelectRegion(region.id)}
               className={cn(
-                "flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap border",
+                "flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap border",
                 selectedRegion === region.id
                   ? "bg-[#f9572a]/10 border-[#f9572a] text-[#f9572a]"
                   : "bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50",

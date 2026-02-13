@@ -24,7 +24,7 @@ export function Navbar() {
     <header
       className={cn(
         "w-full z-50 transition-all duration-300 py-5",
-        isHome ? "absolute top-0 px-6" : "relative bg-background px-6 mb-8",
+        isHome ? "absolute top-0 px-6" : "relative bg-background px-6 mb-0",
       )}
     >
       <div className="flex items-center justify-between max-w-7xl mx-auto">

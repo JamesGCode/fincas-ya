@@ -36,7 +36,7 @@ export function Filters({ values, onChange }: FiltersProps) {
                   onChange={(e) =>
                     onChange({ ...values, destination: e.target.value })
                   }
-                  className="block w-full bg-transparent border-0 p-0 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 text-sm font-medium"
+                  className="block w-full bg-transparent border-0 p-0 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 text-sm font-medium shadow-none"
                 />
               </div>
             </div>
@@ -55,7 +55,7 @@ export function Filters({ values, onChange }: FiltersProps) {
                 <input
                   type="text"
                   placeholder="Agregar fechas"
-                  className="block w-full bg-transparent border-0 p-0 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 text-sm font-medium"
+                  className="block w-full bg-transparent border-0 p-0 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 text-sm font-medium shadow-none"
                   onFocus={(e) => (e.target.type = "date")}
                   onBlur={(e) => {
                     if (!e.target.value) e.target.type = "text";

@@ -13,21 +13,50 @@ import { useState, useMemo } from "react";
 
 export default function Home() {
   const [selectedRegion, setSelectedRegion] = useState("todas");
+  const [filters, setFilters] = useState({
+    destination: "",
+    guests: "",
+  });
 
   const filteredFincas = useMemo(() => {
+    let result = fincas;
+
+    // Filter by destination
+    if (filters.destination) {
+      result = result.filter((f) =>
+        f.location.toLowerCase().includes(filters.destination.toLowerCase()),
+      );
+    }
+
+    // Filter by guests (capacity)
+    if (filters.guests) {
+      const guestsCount = parseInt(filters.guests);
+      if (!isNaN(guestsCount)) {
+        result = result.filter((f) => f.capacity >= guestsCount);
+      }
+    }
+
+    // Filter by region/favorites (Tabs)
     if (selectedRegion === "todas") {
       // Show all fincas, favorites first
-      return [...fincas].sort((a, b) => {
+      return [...result].sort((a, b) => {
         if (a.isFavorite === b.isFavorite) {
           return b.rating - a.rating;
         }
         return a.isFavorite ? -1 : 1;
       });
     }
-    return fincas.filter((f) =>
+
+    return result.filter((f) =>
       f.location.toLowerCase().includes(selectedRegion.toLowerCase()),
     );
-  }, [selectedRegion]);
+  }, [selectedRegion, filters]);
+
+  const sectionTitle = useMemo(() => {
+    if (filters.destination) return `Resultados para "${filters.destination}"`;
+    if (selectedRegion === "todas") return "Favoritas entre huéspedes";
+    return `Fincas en ${selectedRegion}`;
+  }, [selectedRegion, filters.destination]);
 
   // Limit to 6 items to match design "6 fincas disponibles"
   const displayFincas = filteredFincas.slice(0, 6);
@@ -35,7 +64,7 @@ export default function Home() {
   return (
     <main className="relative min-h-screen bg-white overflow-x-hidden">
       <Navbar />
-      <HeroSection />
+      <HeroSection filters={filters} setFilters={setFilters} />
       <StatsSection />
 
       <div id="fincas" className="max-w-7xl w-full mx-auto">
@@ -43,7 +72,7 @@ export default function Home() {
           selectedRegion={selectedRegion}
           onSelectRegion={setSelectedRegion}
         />
-        <FeaturedFincas fincas={displayFincas} />
+        <FeaturedFincas fincas={displayFincas} title={sectionTitle} />
       </div>
 
       <HowItWorks />
