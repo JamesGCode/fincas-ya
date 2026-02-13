@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Calendar, Users, MapPin } from "lucide-react";
+import { StatsSection } from "./stats-section";
 import Image from "next/image";
 
 interface HeroSectionProps {
@@ -17,34 +18,20 @@ export function HeroSection({ filters, setFilters }: HeroSectionProps) {
   return (
     <div
       id="inicio"
-      className="relative h-[85vh] min-h-[600px] w-full flex items-center justify-center overflow-hidden"
+      className="relative min-h-[fit-content] md:h-[76vh] md:min-h-[500px] w-full flex flex-col items-center justify-center overflow-hidden bg-black py-20 md:py-0"
     >
-      {/* Background Image with Overlay */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-linear-to-t from-[#131313] via-[#131313]/50 to-transparent z-10" />
-        <div className="absolute inset-0 bg-black/40 z-10" />
+      <div className="relative z-20 container mx-auto px-4 flex flex-col items-center text-center mt-10">
         <Image
-          src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=2070&auto=format&fit=crop"
-          alt="Luxury Finca"
-          fill
-          className="object-cover"
-          priority
+          src="/icons/FincasYA.png"
+          alt="FincasYA"
+          width={500}
+          height={500}
+          className="object-contain shrink-0 size-40 md:size-56 mb-6"
         />
-      </div>
-
-      <div className="relative z-20 container mx-auto px-4 flex flex-col items-center text-center mt-20 md:mt-[-50px]">
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
-          Reserva tu finca perfecta{" "}
-          <span className="text-orange-500">en minutos</span>
-        </h1>
-        <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl font-light">
-          Más de 500 fincas verificadas en las mejores regiones de Colombia
-        </p>
-
         {/* Search Bar */}
-        <div className="w-full max-w-4xl bg-white rounded-xl p-6 md:p-2 md:pl-6 shadow-2xl flex flex-col md:flex-row items-center gap-6 md:gap-2">
+        <div className="w-full max-w-4xl bg-white rounded-xl p-4 md:p-2 md:pl-6 shadow-2xl flex flex-col md:flex-row items-center gap-4 md:gap-2">
           {/* Destination */}
-          <div className="flex-1 w-full md:w-auto flex items-center gap-3 border-b md:border-b-0 md:border-r border-gray-100 md:border-gray-200 pb-6 md:pb-0 md:pr-4">
+          <div className="flex-1 w-full md:w-auto flex items-center gap-3 border-b md:border-b-0 md:border-r border-gray-100 md:border-gray-200 pb-4 md:pb-0 md:pr-4">
             <div className="bg-gray-50 md:bg-transparent p-2.5 md:p-0 rounded-full md:rounded-none">
               <MapPin className="w-5 h-5 text-gray-500 md:hidden" />
             </div>
@@ -65,7 +52,7 @@ export function HeroSection({ filters, setFilters }: HeroSectionProps) {
           </div>
 
           {/* Dates */}
-          <div className="flex-1 w-full md:w-auto flex items-center gap-3 border-b md:border-b-0 md:border-r border-gray-100 md:border-gray-200 pb-6 md:pb-0 md:px-4">
+          <div className="flex-1 w-full md:w-auto flex items-center gap-3 border-b md:border-b-0 md:border-r border-gray-100 md:border-gray-200 pb-4 md:pb-0 md:px-4">
             <div className="bg-gray-50 md:bg-transparent p-2.5 md:p-0 rounded-full md:rounded-none">
               <Calendar className="w-5 h-5 text-gray-500 md:hidden" />
             </div>
@@ -104,12 +91,14 @@ export function HeroSection({ filters, setFilters }: HeroSectionProps) {
           </div>
 
           {/* Search Button */}
-          <Button className="hidden md:inline-flex md:w-auto rounded-xl bg-[#f9572a] hover:bg-[#fa6b43] text-white px-8 py-4 md:py-6 h-auto transition-all shadow-md hover:shadow-lg text-lg md:text-base font-semibold">
+          <Button className="w-full md:w-auto inline-flex rounded-xl bg-[#f9572a] hover:bg-[#fa6b43] text-white px-8 py-4 md:py-6 h-auto md:h-12 transition-all shadow-md hover:shadow-lg text-lg md:text-base font-semibold mt-2 md:mt-0">
             <Search className="w-5 h-5 mr-2" />
             Buscar
           </Button>
         </div>
       </div>
+
+      <StatsSection />
     </div>
   );
 }

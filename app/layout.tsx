@@ -1,10 +1,37 @@
 import type { Metadata } from "next";
-import { Inter, DM_Sans } from "next/font/google";
+import { DM_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+const degular = localFont({
+  src: [
+    {
+      path: "./fonts/DegularDemo-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "./fonts/DegularDemo-Medium.otf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "./fonts/DegularDemo-Semibold.otf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "./fonts/DegularDemo-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "./fonts/DegularDemo-Black.otf",
+      weight: "900",
+      style: "normal",
+    },
+  ],
+  variable: "--font-degular",
 });
 
 const dmSans = DM_Sans({
@@ -64,7 +91,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${inter.variable} ${dmSans.variable} antialiased bg-background text-foreground font-sans`}
+        className={`${degular.variable} ${dmSans.variable} ${degular.className} antialiased bg-background text-foreground font-sans`}
       >
         <SmoothScroll>{children}</SmoothScroll>
         <FloatingButton />

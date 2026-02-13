@@ -1,9 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useRef } from "react";
 import { ScrollFade } from "../ui/scroll-fade";
-import { fincas } from "@/lib/data";
+import { MapPin } from "lucide-react";
 
 interface RegionFilterProps {
   selectedRegion: string;
@@ -14,48 +13,17 @@ export function RegionFilter({
   selectedRegion,
   onSelectRegion,
 }: RegionFilterProps) {
-  // Extract unique cities from fincas
-  const cities = Array.from(
-    new Set(
-      fincas
-        .map((finca) => {
-          // Split by comma or hyphen to get the city name (first part)
-          return finca.location.split(/[,-]/)[0].trim();
-        })
-        .filter((city) => {
-          const lower = city.toLowerCase();
-          // Filter out invalid or placeholder names
-          return (
-            city.length > 3 &&
-            !lower.includes("donde") &&
-            !lower.includes("?") &&
-            !lower.includes("nan") &&
-            !lower.includes("test")
-          );
-        })
-        .map((city) => {
-          // Title Case Normalization
-          let normalized = city
-            .toLowerCase()
-            .split(" ")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ");
-
-          // Fix specific typos
-          if (normalized === "Villacencio") return "Villavicencio";
-
-          return normalized;
-        }),
-    ),
-  ).sort();
-
   const regions = [
     { id: "favoritas", label: "Favoritas" },
-    ...cities.map((city) => ({ id: city, label: city })),
+    { id: "eje-cafetero", label: "Eje Cafetero" },
+    { id: "tolima", label: "Tolima" },
+    { id: "cundinamarca", label: "Cundinamarca" },
+    { id: "llanos", label: "Llanos Orientales" },
+    { id: "santander", label: "Santander" },
   ];
 
   return (
-    <div className="container mx-auto px-4 mb-12">
+    <div className="container mx-auto px-4 mb-12 mt-8">
       <ScrollFade className="w-full">
         <div className="flex items-center gap-3 pb-4">
           {regions.map((region) => (
@@ -69,6 +37,7 @@ export function RegionFilter({
                   : "bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50",
               )}
             >
+              <MapPin className="w-4 h-4" />
               {region.label}
             </button>
           ))}

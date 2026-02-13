@@ -148,7 +148,10 @@ export function Footer() {
         <Separator className="my-12 bg-border/30" />
 
         <div className="flex flex-col md:flex-row justify-center items-center gap-4 text-xs text-muted-foreground">
-          <p>© 2024 FincasYa. Todos los derechos reservados.</p>
+          <p>
+            © {new Date().getFullYear()} FincasYa. Todos los derechos
+            reservados.
+          </p>
         </div>
       </div>
     </footer>

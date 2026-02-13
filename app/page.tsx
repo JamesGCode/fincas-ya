@@ -44,15 +44,72 @@ export default function Home() {
         .sort((a, b) => b.rating - a.rating);
     }
 
-    return result.filter((f) =>
-      f.location.toLowerCase().includes(selectedRegion.toLowerCase()),
-    );
+    // Region Filtering Logic
+    const REGION_MAPPING: Record<string, string[]> = {
+      llanos: [
+        "villavicencio",
+        "restrepo",
+        "acacias",
+        "puerto lopez",
+        "apiay",
+        "pachaquiaro",
+        "meta",
+        "vanguardia",
+      ],
+      cundinamarca: [
+        "viotá",
+        "anapoima",
+        "la mesa",
+        "tocaima",
+        "girardot",
+        "ricaurte",
+        "nilo",
+        "apulo",
+        "tenjo",
+        "nocaima",
+        "chinauta",
+        "fusagasugá",
+        "la vega",
+        "villeta",
+        "bogota",
+      ],
+      tolima: ["melgar", "carmen de apicala", "icononzo"],
+      "eje-cafetero": [
+        "quimbaya",
+        "parque del cafe",
+        "el guadual",
+        "armenia",
+        "pereira",
+        "manizales",
+        "quindio",
+        "risaralda",
+        "caldas",
+      ],
+      santander: ["san gil", "barichara", "socorro", "bucaramanga"],
+    };
+
+    const targetLocations = REGION_MAPPING[selectedRegion] || [];
+
+    return result.filter((f) => {
+      const location = f.location.toLowerCase();
+      // Check if finca location matches any of the mapped locations for the selected region
+      return targetLocations.some((target) => location.includes(target));
+    });
   }, [selectedRegion, filters]);
 
   const sectionTitle = useMemo(() => {
     if (filters.destination) return `Resultados para "${filters.destination}"`;
     if (selectedRegion === "favoritas") return "Favoritas entre huéspedes";
-    return `Fincas en ${selectedRegion}`;
+
+    const regionLabels: Record<string, string> = {
+      "eje-cafetero": "Eje Cafetero",
+      tolima: "Tolima",
+      cundinamarca: "Cundinamarca",
+      llanos: "Llanos Orientales",
+      santander: "Santander",
+    };
+
+    return `Fincas en ${regionLabels[selectedRegion] || selectedRegion}`;
   }, [selectedRegion, filters.destination]);
 
   // Limit removed to show all filtered items
@@ -62,7 +119,6 @@ export default function Home() {
     <main className="relative min-h-screen bg-white overflow-x-hidden">
       <Navbar />
       <HeroSection filters={filters} setFilters={setFilters} />
-      <StatsSection />
 
       <div id="fincas" className="max-w-7xl w-full mx-auto">
         <RegionFilter

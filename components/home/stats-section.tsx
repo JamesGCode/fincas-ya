@@ -5,7 +5,7 @@ export function StatsSection() {
     {
       id: 1,
       label: "Fincas verificadas",
-      value: "500+",
+      value: "+500",
       sub: "Revisadas personalmente",
     },
     {
@@ -18,25 +18,24 @@ export function StatsSection() {
     {
       id: 3,
       label: "Huéspedes felices",
-      value: "10K+",
+      value: "+10K",
       sub: "En el último año",
     },
   ];
 
   return (
-    <div className="relative z-30 mt-8 md:-mt-20 container mx-auto px-4 mb-20">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+    <div className="mt-8 container mx-auto px-4">
+      <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-20 max-w-4xl mx-auto">
         {stats.map((stat) => (
           <div
             key={stat.id}
-            className="bg-white/90 backdrop-blur-md border border-gray-100 p-6 rounded-2xl flex flex-col items-center text-center shadow-xl"
+            className="flex flex-col items-center text-center shadow-xl md:shadow-none bg-white/5 md:bg-transparent p-4 md:p-0 rounded-lg md:rounded-none w-full md:w-auto border border-white/10 md:border-none backdrop-blur-sm md:backdrop-blur-none"
           >
             <div className="flex items-center justify-center text-3xl font-bold text-gray-900 mb-1">
-              <span className="text-orange-500 mr-2">{stat.value}</span>
+              <span className="text-gray-300">{stat.value}</span>
               {stat.icon}
             </div>
-            <div className="text-gray-900 font-medium">{stat.label}</div>
-            <div className="text-xs text-gray-500 mt-1">{stat.sub}</div>
+            <div className="text-gray-400 font-medium">{stat.label}</div>
           </div>
         ))}
       </div>
