@@ -12,7 +12,7 @@ import { fincas } from "@/lib/data";
 import { useState, useMemo } from "react";
 
 export default function Home() {
-  const [selectedRegion, setSelectedRegion] = useState("todas");
+  const [selectedRegion, setSelectedRegion] = useState("favoritas");
   const [filters, setFilters] = useState({
     destination: "",
     guests: "",
@@ -37,14 +37,11 @@ export default function Home() {
     }
 
     // Filter by region/favorites (Tabs)
-    if (selectedRegion === "todas") {
-      // Show all fincas, favorites first
-      return [...result].sort((a, b) => {
-        if (a.isFavorite === b.isFavorite) {
-          return b.rating - a.rating;
-        }
-        return a.isFavorite ? -1 : 1;
-      });
+    if (selectedRegion === "favoritas") {
+      // Show only favorite fincas
+      return result
+        .filter((f) => f.isFavorite)
+        .sort((a, b) => b.rating - a.rating);
     }
 
     return result.filter((f) =>
@@ -54,12 +51,12 @@ export default function Home() {
 
   const sectionTitle = useMemo(() => {
     if (filters.destination) return `Resultados para "${filters.destination}"`;
-    if (selectedRegion === "todas") return "Favoritas entre huéspedes";
+    if (selectedRegion === "favoritas") return "Favoritas entre huéspedes";
     return `Fincas en ${selectedRegion}`;
   }, [selectedRegion, filters.destination]);
 
-  // Limit to 6 items to match design "6 fincas disponibles"
-  const displayFincas = filteredFincas.slice(0, 6);
+  // Limit removed to show all filtered items
+  const displayFincas = filteredFincas;
 
   return (
     <main className="relative min-h-screen bg-white overflow-x-hidden">

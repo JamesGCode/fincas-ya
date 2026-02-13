@@ -50,7 +50,7 @@ export function RegionFilter({
   ).sort();
 
   const regions = [
-    { id: "todas", label: "Todas" },
+    { id: "favoritas", label: "Favoritas" },
     ...cities.map((city) => ({ id: city, label: city })),
   ];
 
