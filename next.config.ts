@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "videos.pexels.com",
       },
+      {
+        protocol: "https",
+        hostname: "6qi7zm8e9r.ufs.sh",
+      },
     ],
   },
 };
