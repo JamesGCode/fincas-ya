@@ -10,7 +10,7 @@ export function FloatingButton() {
       initial={{ opacity: 0, scale: 0.5 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 1 }}
-      className="fixed bottom-8 right-8 z-9999"
+      className="fixed md:bottom-8 md:right-8 bottom-4 right-4 z-9999"
     >
       <Link
         href="https://wa.me/573000000000"

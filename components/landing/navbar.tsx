@@ -1,9 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,20 @@ export function Navbar() {
     setIsScrolled(latest > 50);
   });
 
+  const handleScroll = (
+    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+    id: string,
+  ) => {
+    if (isHome) {
+      e.preventDefault();
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+      setIsMobileMenuOpen(false);
+    }
+  };
+
   return (
     <header
       className={cn(
@@ -33,6 +46,7 @@ export function Navbar() {
           <nav className="flex items-center gap-6">
             <Link
               href="/#inicio"
+              onClick={(e) => handleScroll(e, "inicio")}
               className={cn(
                 "text-sm font-medium transition-colors hover:text-orange-500",
                 isHome ? "text-white" : "text-foreground",
@@ -42,6 +56,7 @@ export function Navbar() {
             </Link>
             <Link
               href="/#fincas"
+              onClick={(e) => handleScroll(e, "fincas")}
               className={cn(
                 "text-sm font-medium transition-colors hover:text-orange-500",
                 isHome ? "text-white" : "text-foreground",
@@ -51,6 +66,7 @@ export function Navbar() {
             </Link>
             <Link
               href="/#como-funciona"
+              onClick={(e) => handleScroll(e, "como-funciona")}
               className={cn(
                 "text-sm font-medium transition-colors hover:text-orange-500",
                 isHome ? "text-white" : "text-foreground",
@@ -97,30 +113,29 @@ export function Navbar() {
         >
           <nav className="flex flex-col p-6 gap-2">
             <Link
-              href="#inicio"
+              href="/#inicio"
               className="text-base font-medium text-foreground p-3 hover:bg-black/5 rounded-lg"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={(e) => handleScroll(e, "inicio")}
             >
               Inicio
             </Link>
             <Link
-              href="#fincas"
+              href="/#fincas"
               className="text-base font-medium text-foreground p-3 hover:bg-black/5 rounded-lg"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={(e) => handleScroll(e, "fincas")}
             >
               Fincas
             </Link>
             <Link
-              href="#como-funciona"
+              href="/#como-funciona"
               className="text-base font-medium text-foreground p-3 hover:bg-black/5 rounded-lg"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={(e) => handleScroll(e, "como-funciona")}
             >
               Cómo Funciona
             </Link>
             <div className="flex flex-col gap-2 pt-4 border-t border-border/50 mt-2">
               <Button
-                variant="outline"
-                className="w-full rounded-full"
+                className="w-full bg-[#f9572a] hover:bg-[#fa6b43] text-white rounded-full transition-all shadow-md hover:shadow-lg"
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   const el = document.getElementById("finca-propietario");

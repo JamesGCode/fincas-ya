@@ -106,7 +106,6 @@ export default function Home() {
       tolima: "Tolima",
       cundinamarca: "Cundinamarca",
       llanos: "Llanos Orientales",
-      santander: "Santander",
     };
 
     return `Fincas en ${regionLabels[selectedRegion] || selectedRegion}`;
@@ -120,7 +119,7 @@ export default function Home() {
       <Navbar />
       <HeroSection filters={filters} setFilters={setFilters} />
 
-      <div id="fincas" className="max-w-7xl w-full mx-auto">
+      <div id="fincas" className="max-w-[1600px] w-full mx-auto px-4 md:px-8">
         <RegionFilter
           selectedRegion={selectedRegion}
           onSelectRegion={setSelectedRegion}

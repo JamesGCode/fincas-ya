@@ -18,15 +18,15 @@ export function HeroSection({ filters, setFilters }: HeroSectionProps) {
   return (
     <div
       id="inicio"
-      className="relative min-h-fit md:h-[70vh] md:min-h-[500px] w-full flex flex-col items-center justify-center overflow-hidden bg-black py-20 md:py-0"
+      className="relative min-h-fit md:h-[30vh] md:min-h-[360px] w-full flex flex-col items-center justify-center overflow-hidden bg-black py-10 md:py-0"
     >
-      <div className="relative z-20 container mx-auto px-4 flex flex-col items-center text-center mt-0">
+      <div className="relative z-20 container mx-auto px-4 flex flex-col items-center text-center mt-0 3xl:mt-10">
         <Image
-          src="/icons/FincasYA.png"
+          src="/icons/fincas-ya-logo.png"
           alt="FincasYA"
           width={500}
           height={500}
-          className="object-contain shrink-0 size-40 md:size-56 mb-6"
+          className="object-contain shrink-0 w-80 h-auto my-6"
         />
         {/* Search Bar */}
         <div className="w-full max-w-4xl bg-white rounded-xl p-4 md:p-2 md:pl-6 shadow-2xl flex flex-col md:flex-row items-center gap-1 md:gap-2">
