@@ -22,10 +22,11 @@ export function HeroSection({ filters, setFilters }: HeroSectionProps) {
     >
       <div className="relative z-20 container mx-auto px-4 flex flex-col items-center text-center mt-0 3xl:mt-10">
         <Image
-          src="/fincas-ya-logo.png"
+          src="/fincas-ya-logo-2.png"
           alt="FincasYA"
           width={500}
           height={500}
+          priority
           className="object-contain shrink-0 w-80 h-auto my-6"
         />
         {/* Search Bar */}
