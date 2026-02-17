@@ -22,7 +22,7 @@ export function HeroSection({ filters, setFilters }: HeroSectionProps) {
     >
       <div className="relative z-20 container mx-auto px-4 flex flex-col items-center text-center mt-0 3xl:mt-10">
         <Image
-          src="/icons/fincas-ya-logo.png"
+          src="/fincas-ya-logo.png"
           alt="FincasYA"
           width={500}
           height={500}
