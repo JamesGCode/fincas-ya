@@ -7,6 +7,7 @@ import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -14,6 +15,7 @@ export function Navbar() {
   const { scrollY } = useScroll();
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const isFincaPage = pathname.includes("/fincas/");
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 50);
@@ -40,7 +42,23 @@ export function Navbar() {
         isHome ? "absolute top-0 px-6" : "relative bg-background px-6 mb-0",
       )}
     >
-      <div className="flex items-center justify-end max-w-7xl mx-auto">
+      <div
+        className={cn(
+          "flex items-center max-w-7xl mx-auto",
+          isFincaPage ? "justify-between" : "justify-end",
+        )}
+      >
+        {isFincaPage && (
+          <Link href="/" className="relative z-50">
+            <Image
+              src="/favicon.png"
+              alt="Fincas Ya"
+              width={40}
+              height={40}
+              className="w-10 h-10 object-contain"
+            />
+          </Link>
+        )}
         {/* Desktop Navigation & Actions */}
         <div className="hidden md:flex items-center gap-8">
           <nav className="flex items-center gap-6">

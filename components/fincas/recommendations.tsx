@@ -18,8 +18,8 @@ export function Recommendations({ fincas, currentId }: RecommendationsProps) {
   if (recommendations.length === 0) return null;
 
   return (
-    <section className="py-16 border-t border-border/30 mt-8">
-      <h2 className="text-xl md:text-2xl font-bold font-display max-md:px-3 mb-8 tracking-tight">
+    <section className="py-10 border-t border-border/30 mt-8">
+      <h2 className="text-xl md:text-2xl font-bold  max-md:px-3 mb-8 tracking-tight">
         También te puede interesar
       </h2>
 

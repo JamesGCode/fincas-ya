@@ -16,7 +16,7 @@ export function GuestFavorite({ rating }: GuestFavoriteProps) {
         <div className="flex items-center md:gap-4 gap-2 relative z-10">
           <div className="flex items-center gap-1">
             <div className="text-center px-1">
-              <p className="md:text-sm text-xs font-extrabold leading-tight text-neutral-900 font-display uppercase tracking-tight">
+              <p className="md:text-sm text-xs font-extrabold leading-tight text-neutral-900  uppercase tracking-tight">
                 Favorito entre
                 <br />
                 huéspedes

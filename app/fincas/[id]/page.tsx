@@ -8,6 +8,7 @@ import { Recommendations } from "@/components/fincas/recommendations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { ReservationCard } from "@/components/fincas/reservation-card";
 import { HeroGallery } from "@/components/fincas/hero-gallery";
 import { GuestFavorite } from "@/components/fincas/guest-favorite";
 import { cn } from "@/lib/utils";
@@ -51,7 +52,7 @@ export default async function FincaDetailPage({ params }: Props) {
           video={finca.video}
         />
         {/* Content */}
-        <section className="pb-16 relative z-100 -mt-14 max-md:bg-white rounded-t-3xl md:rounded-none md:mt-0">
+        <section className="md:pb-10 relative z-100 -mt-14 max-md:bg-white rounded-t-3xl md:rounded-none md:mt-0">
           <div className="container mx-auto px-0 md:px-6 lg:px-6">
             <div className="grid lg:grid-cols-3 max-lg:gap-10">
               {/* Main Info */}
@@ -62,7 +63,7 @@ export default async function FincaDetailPage({ params }: Props) {
                     isFavorite && "md:border-l md:border-primary/10",
                   )}
                 >
-                  <h1 className="text-3xl md:text-5xl font-bold font-display mb-6 tracking-tight">
+                  <h1 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">
                     {finca.title}
                   </h1>
 
@@ -126,7 +127,7 @@ export default async function FincaDetailPage({ params }: Props) {
 
                 {/* Features / Services */}
                 <div className="mb-12 max-md:px-3">
-                  <h2 className="text-xl font-bold mb-6 font-display">
+                  <h2 className="text-xl font-bold mb-6">
                     Lo que este lugar ofrece
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
@@ -177,36 +178,13 @@ export default async function FincaDetailPage({ params }: Props) {
                   </div>
                 </div>
 
-                {/* Map Section */}
-                <div className="mb-12 max-md:px-3">
-                  <h2 className="text-xl font-bold mb-6 font-display">
-                    Ubicación
-                  </h2>
-                  <div className="w-full h-[400px] rounded-2xl overflow-hidden bg-neutral-800 relative z-0">
-                    {/* Simple iframe map using OSM */}
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      loading="lazy"
-                      allowFullScreen
-                      referrerPolicy="no-referrer-when-downgrade"
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${finca.coordinates.lng - 0.01}%2C${finca.coordinates.lat - 0.01}%2C${finca.coordinates.lng + 0.01}%2C${finca.coordinates.lat + 0.01}&layer=mapnik&marker=${finca.coordinates.lat}%2C${finca.coordinates.lng}`}
-                    ></iframe>
-                  </div>
-                  <div className="mt-4 flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>{finca.location}</span>
-                  </div>
-                </div>
-
                 {/* Terms of Service Warning */}
-                <div className="border shadow-xl border-border/50 rounded-2xl md:p-8 px-4.5 py-8 mb-0 bg-card/80 max-md:mx-3">
+                <div className="max-md:px-3">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center max-md:hidden">
                       <Check className="w-5 h-5 text-primary" />
                     </div>
-                    <h3 className="text-xl font-bold font-display tracking-tight">
+                    <h3 className="text-xl font-bold tracking-tight">
                       Condiciones y Responsabilidades
                     </h3>
                   </div>
@@ -255,43 +233,39 @@ export default async function FincaDetailPage({ params }: Props) {
 
               {/* Booking Card */}
               <div className="lg:col-span-1 max-md:px-3 md:ml-4">
-                <div className="sticky top-28 bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
-                  <div className="mb-6">
-                    <h3 className="font-bold text-xl mb-1">{finca.title}</h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-primary text-primary" />
-                        <span className="text-foreground font-medium">
-                          {finca.rating}
-                        </span>
-                      </div>
-                      <span>•</span>
-                      <span className="truncate max-w-[120px]">
-                        {finca.location}
-                      </span>
-                      <span>•</span>
-                      <span>{finca.capacity} pers.</span>
-                    </div>
+                <ReservationCard
+                  price={finca.price}
+                  maxGuests={finca.capacity}
+                  rating={finca.rating}
+                />
+              </div>
+            </div>
 
-                    <span className="text-sm text-muted-foreground block mb-1">
-                      Desde
-                    </span>
-                    <div className="text-3xl font-bold">
-                      ${finca.price.toLocaleString("es-CO")}
-                      <span className="text-base font-normal text-muted-foreground">
-                        {" "}
-                        / noche
-                      </span>
-                    </div>
-                  </div>
+            {/* <Separator className="mt-16 mb-10" /> */}
 
-                  <Button className="w-full rounded-xl text-lg py-6 mb-4 bg-[#fe4a19] text-white hover:bg-[#fe4a19]/90 transition-colors">
-                    Reservar Ahora
-                  </Button>
-
-                  <p className="text-xs text-center text-muted-foreground mt-4">
-                    No se realizará ningún cargo en este momento.
+            {/* Map Section - Moved here for full width/proper segmentation */}
+            <div className="my-10 max-md:px-3">
+              <div className="md:bg-neutral-50/50 dark:md:bg-neutral-900/50 md:border md:border-border/50 md:rounded-3xl p-3 md:p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <h2 className="text-2xl shrink-0 font-bold font-display">
+                    A dónde irás
+                  </h2>
+                  <div className="w-full h-px bg-border/50"></div>
+                  <p className="text-muted-foreground shrink-0">
+                    ({finca.location})
                   </p>
+                </div>
+                <div className="w-full h-[480px] rounded-2xl overflow-hidden bg-neutral-200 relative z-0 border border-border/50">
+                  {/* Simple iframe map using OSM */}
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    allowFullScreen
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${finca.coordinates.lng - 0.01}%2C${finca.coordinates.lat - 0.01}%2C${finca.coordinates.lng + 0.01}%2C${finca.coordinates.lat + 0.01}&layer=mapnik&marker=${finca.coordinates.lat}%2C${finca.coordinates.lng}`}
+                  ></iframe>
                 </div>
               </div>
             </div>

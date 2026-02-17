@@ -21,7 +21,7 @@ export function CTA() {
             <span className="text-primary font-semibold text-sm uppercase tracking-widest mb-4 block">
               Para Propietarios
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold font-display mb-6 leading-tight tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-bold  mb-6 leading-tight tracking-tight">
               ¿Tienes una finca?
               <br />
               <span className="text-primary">Únete a nosotros</span>
@@ -79,19 +79,19 @@ export function CTA() {
           {/* Right Content - Stats */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-3xl p-8 text-center">
-              <span className="text-5xl font-bold font-display text-primary block mb-2">
+              <span className="text-5xl font-bold  text-primary block mb-2">
                 500+
               </span>
               <span className="text-muted-foreground text-sm">Fincas</span>
             </div>
             <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-3xl p-8 text-center">
-              <span className="text-5xl font-bold font-display text-primary block mb-2">
+              <span className="text-5xl font-bold  text-primary block mb-2">
                 15K+
               </span>
               <span className="text-muted-foreground text-sm">Huéspedes</span>
             </div>
             <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-3xl p-8 text-center">
-              <span className="text-5xl font-bold font-display text-primary block mb-2">
+              <span className="text-5xl font-bold  text-primary block mb-2">
                 98%
               </span>
               <span className="text-muted-foreground text-sm">
@@ -99,7 +99,7 @@ export function CTA() {
               </span>
             </div>
             <div className="bg-card/30 backdrop-blur-sm border border-border/30 rounded-3xl p-8 text-center">
-              <span className="text-5xl font-bold font-display text-primary block mb-2">
+              <span className="text-5xl font-bold  text-primary block mb-2">
                 24/7
               </span>
               <span className="text-muted-foreground text-sm">Soporte</span>

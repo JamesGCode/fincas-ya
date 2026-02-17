@@ -13,7 +13,7 @@ export function FloatingButton() {
       className="fixed md:bottom-8 md:right-8 bottom-4 right-4 z-9999"
     >
       <Link
-        href="https://wa.me/573000000000"
+        href="https://wa.me/573157773937"
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-center bg-[#40c351] hover:bg-[#6ad078] text-neutral-900 h-14 min-w-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 group border border-neutral-200 overflow-hidden"

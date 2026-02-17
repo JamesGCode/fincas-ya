@@ -82,7 +82,7 @@ export function FincaList() {
           height={100}
           className="w-56 h-auto object-contain mx-auto mb-8 pointer-events-none select-none"
         />
-        <h2 className="text-3xl md:text-4xl font-bold font-display mb-2 tracking-tight">
+        <h2 className="text-3xl md:text-4xl font-bold  mb-2 tracking-tight">
           Explora Todas las Fincas
         </h2>
         <p className="text-muted-foreground max-w-xl mx-auto">
@@ -193,7 +193,7 @@ export function FincaList() {
           <div className="space-y-12">
             {/* Grid display for specific region */}
             <div className="max-md:px-3">
-              <h3 className="text-2xl md:text-3xl font-bold font-display tracking-tight mb-8 capitalize flex items-center gap-2">
+              <h3 className="text-2xl md:text-3xl font-bold  tracking-tight mb-8 capitalize flex items-center gap-2">
                 {activeTab === "cundinamarca" && "🏔️ Cundinamarca"}
                 {activeTab === "eje-cafetero" && "☕ Eje Cafetero"}
                 {activeTab === "tolima" && "🌴 Tolima"}
@@ -258,7 +258,7 @@ function CarouselSection({
     <div>
       <div className="flex items-center justify-between mb-8">
         <div className="max-md:px-4">
-          <h3 className="text-2xl md:text-3xl font-bold font-display tracking-tight flex items-center gap-2">
+          <h3 className="text-2xl md:text-3xl font-bold  tracking-tight flex items-center gap-2">
             {icon}
             {title}
           </h3>
