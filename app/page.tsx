@@ -8,6 +8,7 @@ import { RegionFilter } from "@/components/home/region-filter";
 import { FeaturedFincas } from "@/components/home/featured-fincas";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { CtaSection } from "@/components/home/cta-section";
+import { InstagramFeed } from "@/components/home/instagram-feed";
 import { fincas } from "@/lib/data";
 import { useState, useMemo } from "react";
 
@@ -46,6 +47,25 @@ export default function Home() {
 
     // Region Filtering Logic
     const REGION_MAPPING: Record<string, string[]> = {
+      "cerca-bogota": [
+        "viotá",
+        "anapoima",
+        "la mesa",
+        "tocaima",
+        "girardot",
+        "ricaurte",
+        "nilo",
+        "apulo",
+        "tenjo",
+        "nocaima",
+        "chinauta",
+        "fusagasugá",
+        "la vega",
+        "villeta",
+        "bogota",
+      ],
+      playa: ["santa marta", "cartagena", "barranquilla", "tolu", "coveñas"],
+      luxury: [], // Special case handled below
       llanos: [
         "villavicencio",
         "restrepo",
@@ -88,6 +108,16 @@ export default function Home() {
       santander: ["san gil", "barichara", "socorro", "bucaramanga"],
     };
 
+    // Special handling for "Luxury"
+    if (selectedRegion === "luxury") {
+      return result.filter(
+        (f) =>
+          f.title.toLowerCase().includes("luxury") ||
+          f.description.toLowerCase().includes("lujo") ||
+          f.price >= 3000000,
+      );
+    }
+
     const targetLocations = REGION_MAPPING[selectedRegion] || [];
 
     return result.filter((f) => {
@@ -106,6 +136,9 @@ export default function Home() {
       tolima: "Tolima",
       cundinamarca: "Cundinamarca",
       llanos: "Llanos Orientales",
+      "cerca-bogota": "Cerca a Bogotá",
+      playa: "Playa",
+      luxury: "Luxury",
     };
 
     return `Fincas en ${regionLabels[selectedRegion] || selectedRegion}`;
@@ -126,6 +159,8 @@ export default function Home() {
         />
         <FeaturedFincas fincas={displayFincas} title={sectionTitle} />
       </div>
+
+      <InstagramFeed />
 
       <HowItWorks />
       <CtaSection />

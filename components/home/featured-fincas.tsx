@@ -29,10 +29,10 @@ export function FeaturedFincas({
             key={finca.id}
             finca={finca}
             badge={
-              index === 0
+              finca.isFavorite
                 ? { text: "Favorito", color: "orange" }
-                : index === 1
-                  ? { text: "Nueva", color: "green" }
+                : finca.isNew
+                  ? { text: "Nueva", color: "yellow" }
                   : undefined
             }
           />

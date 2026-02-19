@@ -15,6 +15,7 @@ export interface Finca {
     lng: number;
   };
   isFavorite?: boolean;
+  isNew?: boolean;
 }
 
 export type FincaConTemporadas = Finca & {
@@ -107,10 +108,10 @@ export const fincas: FincaConTemporadas[] = [
     isFavorite: true,
     description:
       "Espectacular Casa Quinta tipo Loft  ubicada a tan solo 2 horas ½ de Bogotá, en el municipio de Restrepo ideal para compartir en familia o amigos, tiene capacidad  hasta para 23 personas",
-    location: "Restrepo",
+    location: "Restrepo - Villavicencio",
     capacity: 23,
     price: 2400000,
-    rating: 5.0,
+    rating: 4.8,
     reviewsCount: 137,
     images: [
       "https://6qi7zm8e9r.ufs.sh/f/OCmpjv6mDV1BsemnODlTBIv3ACyOQ6jVeEFXoNaWM97nf1rP",
@@ -185,6 +186,7 @@ export const fincas: FincaConTemporadas[] = [
     id: "melgar-casa-davinci-luxury-14-16-18-melgar-carmen-de-apicala",
     title: "Melgar Casa Davinci Luxury",
     isFavorite: true,
+    isNew: true,
     description:
       "Espectacular Quinta Privada se encuentra ubicada entre Melgar y Carmen de Apicala. Es Ideal para grupos de Familia o amigos, cuenta con capacidad Max 16 personas 👨‍👩‍👧‍👦",
     location: "Melgar - Carmen de apicala",
@@ -228,10 +230,10 @@ export const fincas: FincaConTemporadas[] = [
     isFavorite: true,
     description:
       "🌞 Espectacular Casa Quinta campestre ubicada a tan solo 2 horas y media, En el municipio de Acacías. Ideal para grupos de familia y amigos. Cuenta con capacidad hasta para 26 personas",
-    location: "Acacias - Meta",
+    location: "Acacias - Villavicencio",
     capacity: 10,
     price: 2400000,
-    rating: 5.0,
+    rating: 4.9,
     reviewsCount: 51,
     images: [
       "https://6qi7zm8e9r.ufs.sh/f/OCmpjv6mDV1Bz4rP1hwXY5vQ2P41quOAK9DscxnZmidaCSkl",
@@ -270,7 +272,7 @@ export const fincas: FincaConTemporadas[] = [
     isFavorite: true,
     description:
       "Espectacular Casa Quinta ubicada en el Municipio de Restrepo\nHasta para 17 personas en cama.👨‍👩‍👧‍👦",
-    location: "Restrepo - Meta",
+    location: "Restrepo - Villavicencio",
     capacity: 17,
     price: 1850000,
     rating: 4.9,
@@ -544,7 +546,7 @@ export const fincas: FincaConTemporadas[] = [
     isFavorite: true,
     description:
       "Espectacular Casa Quinta de lujo ubicada en el municipio de Restrepo a tan solo 3 horas de Bogotá. 🚗",
-    location: "Restrepo",
+    location: "Restrepo - Villavicencio",
     capacity: 42,
     price: 4300000,
     rating: 4.8,
@@ -761,7 +763,7 @@ export const fincas: FincaConTemporadas[] = [
     title: "Restrepo Luxury Premium",
     description:
       "Exclusiva y moderna CASA QUINTA EN ALQUILER  ubicada en Condominio Campestre  en Restrepo- Meta. 🏡LA CASA  es completamnete nueva, su diseño es moderno y  sus zonas sociales son amplias",
-    location: "Restrepo",
+    location: "Restrepo - Villavicencio",
     capacity: 16,
     price: 2000000,
     rating: 4.7,

@@ -2,7 +2,10 @@ import { Button } from "@/components/ui/button";
 
 export function CtaSection() {
   return (
-    <section id="finca-propietario" className="bg-black py-20 text-center">
+    <section
+      id="finca-propietario"
+      className="bg-black py-20 text-center md:rounded-t-[80px] rounded-t-[40px]"
+    >
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
           ¿Tienes una finca increíble?

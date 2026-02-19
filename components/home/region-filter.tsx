@@ -15,6 +15,9 @@ export function RegionFilter({
 }: RegionFilterProps) {
   const regions = [
     { id: "favoritas", label: "Favoritas" },
+    { id: "cerca-bogota", label: "Cerca a Bogotá" },
+    { id: "playa", label: "Playa" },
+    { id: "luxury", label: "Luxury" },
     { id: "eje-cafetero", label: "Eje Cafetero" },
     { id: "tolima", label: "Tolima" },
     { id: "cundinamarca", label: "Cundinamarca" },

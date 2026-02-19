@@ -12,7 +12,7 @@ interface FincaCardHomeProps {
   finca: Finca;
   badge?: {
     text: string;
-    color?: "green" | "orange" | "blue";
+    color?: "green" | "orange" | "blue" | "yellow";
   };
 }
 
@@ -84,7 +84,9 @@ export function FincaCardHome({ finca, badge }: FincaCardHomeProps) {
                 ? "bg-green-600"
                 : badge.color === "orange"
                   ? "bg-orange-500"
-                  : "bg-blue-600",
+                  : badge.color === "yellow"
+                    ? "bg-yellow-500 text-black"
+                    : "bg-blue-600",
             )}
           >
             {badge.text}
