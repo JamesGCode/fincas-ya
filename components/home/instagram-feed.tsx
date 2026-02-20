@@ -2,19 +2,19 @@
 
 import { Instagram } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react";
 import BeholdWidget from "@behold/react";
-import Image from "next/image";
+// import Image from "next/image";
 
-interface InstagramPost {
-  id: string;
-  caption: string;
-  media_type: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
-  media_url: string;
-  thumbnail_url?: string;
-  permalink: string;
-  timestamp: string;
-}
+// interface InstagramPost {
+//   id: string;
+//   caption: string;
+//   media_type: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
+//   media_url: string;
+//   thumbnail_url?: string;
+//   permalink: string;
+//   timestamp: string;
+// }
 
 export function InstagramFeed() {
   // useEffect(() => {
@@ -28,29 +28,29 @@ export function InstagramFeed() {
   //   };
   // }, []);
 
-  const [posts, setPosts] = useState<InstagramPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  // const [posts, setPosts] = useState<InstagramPost[]>([]);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState(false);
 
-  useEffect(() => {
-    async function fetchPosts() {
-      try {
-        const res = await fetch("/api/instagram");
-        if (!res.ok) throw new Error("Failed to fetch");
-        const data = await res.json();
-        if (data.data) {
-          setPosts(data.data);
-        }
-      } catch (err) {
-        console.error(err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    }
+  // useEffect(() => {
+  //   async function fetchPosts() {
+  //     try {
+  //       const res = await fetch("/api/instagram");
+  //       if (!res.ok) throw new Error("Failed to fetch");
+  //       const data = await res.json();
+  //       if (data.data) {
+  //         setPosts(data.data);
+  //       }
+  //     } catch (err) {
+  //       console.error(err);
+  //       setError(true);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
 
-    fetchPosts();
-  }, []);
+  //   fetchPosts();
+  // }, []);
 
   return (
     <section className="w-full bg-black py-20">

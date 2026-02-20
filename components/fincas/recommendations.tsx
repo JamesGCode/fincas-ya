@@ -37,7 +37,7 @@ export function Recommendations({ fincas, currentId }: RecommendationsProps) {
               <Link href={`/fincas/${finca.id}`} className="block group">
                 <div className="relative h-44 rounded-2xl overflow-hidden mb-3">
                   <Image
-                    src={finca.images[0]}
+                    src={finca.images?.[0] || "/placeholder.jpg"}
                     alt={finca.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -52,7 +52,7 @@ export function Recommendations({ fincas, currentId }: RecommendationsProps) {
                 </div>
                 <div className="flex items-center justify-between px-1">
                   <span className="font-bold text-sm">
-                    ${finca.price.toLocaleString("es-CO")}
+                    ${(finca.seasonPrices?.base || 0).toLocaleString("es-CO")}
                     <span className="text-muted-foreground text-xs font-normal">
                       {" "}
                       /noche

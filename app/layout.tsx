@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import localFont from "next/font/local";
+import { FloatingButton } from "@/components/common/floating-button";
+import { QueryProvider } from "@/lib/query-provider";
 import "./globals.css";
 
 const degular = localFont({
@@ -80,8 +82,9 @@ export const metadata: Metadata = {
   },
 };
 
-import { SmoothScroll } from "@/components/common/smooth-scroll";
-import { FloatingButton } from "@/components/common/floating-button";
+import { Toaster } from "sileo";
+
+// ... existing code ...
 
 export default function RootLayout({
   children,
@@ -93,8 +96,9 @@ export default function RootLayout({
       <body
         className={`${degular.variable} ${dmSans.variable} ${degular.className} antialiased bg-background text-foreground font-sans`}
       >
-        <SmoothScroll>{children}</SmoothScroll>
+        <QueryProvider>{children}</QueryProvider>
         <FloatingButton />
+        <Toaster position="top-right" options={{ fill: "black" }} />
       </body>
     </html>
   );

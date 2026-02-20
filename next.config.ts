@@ -28,6 +28,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.fbcdn.net",
       },
+      {
+        protocol: "https",
+        hostname: "fincasya.s3.us-east-1.amazonaws.com",
+      },
     ],
   },
 };

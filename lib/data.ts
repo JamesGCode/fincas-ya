@@ -16,6 +16,13 @@ export interface Finca {
   };
   isFavorite?: boolean;
   isNew?: boolean;
+  seasonPrices?: {
+    base: number;
+    baja: number;
+    media: number;
+    alta: number;
+    especiales: number | null;
+  };
 }
 
 export type FincaConTemporadas = Finca & {

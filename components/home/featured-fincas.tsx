@@ -2,6 +2,8 @@
 
 import { Finca } from "@/lib/data";
 import { FincaCardHome } from "@/components/home/finca-card-home";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SearchX } from "lucide-react";
 
 interface FeaturedFincasProps {
   fincas: Finca[];
@@ -12,6 +14,18 @@ export function FeaturedFincas({
   fincas,
   title = "Favoritas entre huéspedes",
 }: FeaturedFincasProps) {
+  if (fincas.length === 0) {
+    return (
+      <section className="container mx-auto px-4 mb-20 mt-8">
+        <EmptyState
+          title="No se encontraron fincas"
+          description="No hemos encontrado propiedades que coincidan con tus criterios. Intenta ajustar los filtros o prueba otra categoría."
+          icon={SearchX}
+        />
+      </section>
+    );
+  }
+
   return (
     <section className="container mx-auto md:px-4 mb-20 mt-2">
       <div className="flex items-end justify-between mb-4">

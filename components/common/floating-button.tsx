@@ -2,9 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 
 export function FloatingButton() {
+  const pathname = usePathname();
+
+  // No mostrar en rutas de admin
+  if (pathname.startsWith("/properties")) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.5 }}

@@ -14,14 +14,14 @@ export function RegionFilter({
   onSelectRegion,
 }: RegionFilterProps) {
   const regions = [
-    { id: "favoritas", label: "Favoritas" },
     { id: "cerca-bogota", label: "Cerca a Bogotá" },
-    { id: "playa", label: "Playa" },
-    { id: "luxury", label: "Luxury" },
-    { id: "eje-cafetero", label: "Eje Cafetero" },
-    { id: "tolima", label: "Tolima" },
-    { id: "cundinamarca", label: "Cundinamarca" },
-    { id: "llanos", label: "Llanos Orientales" },
+    { id: "melgar", label: "Melgar" },
+    { id: "villavicencio", label: "Villavicencio" },
+    { id: "anapoima", label: "Anapoima" },
+    { id: "villeta", label: "Villeta" },
+    { id: "playa", label: "Destinos de Playa" },
+    { id: "luxury", label: "Fincas de Lujo" },
+    { id: "eventos", label: "Eventos" },
   ];
 
   return (

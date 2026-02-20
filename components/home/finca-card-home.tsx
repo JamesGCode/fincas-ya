@@ -23,14 +23,15 @@ export function FincaCardHome({ finca, badge }: FincaCardHomeProps) {
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev + 1) % finca.images.length);
+    setCurrentImageIndex((prev) => (prev + 1) % (finca.images?.length || 1));
   };
 
   const prevImage = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setCurrentImageIndex(
-      (prev) => (prev - 1 + finca.images.length) % finca.images.length,
+      (prev) =>
+        (prev - 1 + (finca.images?.length || 1)) % (finca.images?.length || 1),
     );
   };
 
@@ -40,8 +41,8 @@ export function FincaCardHome({ finca, badge }: FincaCardHomeProps) {
         {/* Image Carousel */}
         <Link href={`/fincas/${finca.id}`}>
           <Image
-            src={finca.images[currentImageIndex]}
-            alt={finca.title}
+            src={finca.images?.[currentImageIndex] || "/placeholder.jpg"}
+            alt={finca.title || "Finca"}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
@@ -64,7 +65,7 @@ export function FincaCardHome({ finca, badge }: FincaCardHomeProps) {
 
         {/* Dots Indicator */}
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-          {finca.images.slice(0, 5).map((_, idx) => (
+          {(finca.images || []).slice(0, 5).map((_, idx) => (
             <div
               key={idx}
               className={cn(
@@ -138,7 +139,7 @@ export function FincaCardHome({ finca, badge }: FincaCardHomeProps) {
 
         <div className="flex items-center gap-2 text-sm">
           <span className="font-bold text-gray-900">
-            ${finca.price.toLocaleString("es-CO")}
+            ${(finca.seasonPrices?.base || 0).toLocaleString("es-CO")}
           </span>
           <span className="text-gray-500 font-normal">noche</span>
           <span className="text-gray-300 mx-1">•</span>
