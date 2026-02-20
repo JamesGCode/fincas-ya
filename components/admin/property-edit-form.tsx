@@ -24,6 +24,9 @@
 //   Video,
 //   Globe,
 //   AlertCircle,
+//   Trash2,
+//   CheckCircle2,
+//   Circle,
 // } from "lucide-react";
 // import Link from "next/link";
 // import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +43,10 @@
 //   const [form, setForm] = useState<UpdatePropertyPayload>({});
 //   const [newFeature, setNewFeature] = useState("");
 //   const [newImageUrl, setNewImageUrl] = useState("");
+
+//   // Multi-select state
+//   const [selectedImages, setSelectedImages] = useState<Set<number>>(new Set());
+//   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
 
 //   useEffect(() => {
 //     if (updateMutation.isSuccess) {
@@ -64,7 +71,6 @@
 //         location: property.location,
 //         capacity: property.capacity,
 //         price: property.price,
-//         // Cargar seasonPrices completo
 //         seasonPrices: property.seasonPrices,
 //         images: property.images,
 //         features: property.features,
@@ -110,30 +116,58 @@
 //     }
 //   };
 
-//   const removeImage = async (index: number) => {
-//     const imageUrl = form.images?.[index];
-//     if (!imageUrl) return;
+//   // Toggle individual image selection
+//   const toggleImageSelection = (index: number) => {
+//     setSelectedImages((prev) => {
+//       const next = new Set(prev);
+//       if (next.has(index)) {
+//         next.delete(index);
+//       } else {
+//         next.add(index);
+//       }
+//       return next;
+//     });
+//   };
 
-//     // Confirmación opcional o ejecución directa según el dashboard premium
-//     const confirmed = window.confirm(
-//       "¿Estás seguro de que deseas eliminar esta imagen permanentemente?",
-//     );
-//     if (!confirmed) return;
+//   // Select / deselect all
+//   const toggleSelectAll = () => {
+//     if (selectedImages.size === (form.images?.length || 0)) {
+//       setSelectedImages(new Set());
+//     } else {
+//       setSelectedImages(new Set((form.images || []).map((_, i) => i)));
+//     }
+//   };
+
+//   // Delete all selected images
+//   const deleteSelectedImages = async () => {
+//     if (selectedImages.size === 0) return;
+
+//     setIsDeletingSelected(true);
+//     const indices = Array.from(selectedImages).sort((a, b) => b - a); // descending to keep indices stable
 
 //     try {
-//       await deleteImageMutation.mutateAsync({
-//         id: propertyId,
-//         imageUrl,
-//       });
+//       await Promise.all(
+//         indices.map((index) => {
+//           const imageUrl = form.images?.[index];
+//           if (!imageUrl) return Promise.resolve();
+//           return deleteImageMutation.mutateAsync({ id: propertyId, imageUrl });
+//         }),
+//       );
 
+//       // Remove from local state (descending order to preserve indices)
 //       setForm((prev) => ({
 //         ...prev,
-//         images: prev.images?.filter((_, i) => i !== index),
+//         images: prev.images?.filter((_, i) => !selectedImages.has(i)),
 //       }));
 
-//       sileo.success({ title: "Imagen eliminada correctamente" });
+//       sileo.success({
+//         title: `${selectedImages.size} ${selectedImages.size === 1 ? "imagen eliminada" : "imágenes seleccionadas"} correctamente`,
+//       });
+//       setSelectedImages(new Set());
 //     } catch (error) {
-//       sileo.error({ title: "Error al eliminar la imagen" });
+//       sileo.error({ title: "Error al eliminar las imágenes seleccionadas" });
+//     } finally {
+//       setIsDeletingSelected(false);
 //     }
 //   };
 
@@ -152,6 +186,34 @@
 //       ...prev,
 //       files: prev.files?.filter((_, i) => i !== index),
 //     }));
+//   };
+
+//   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     if (e.target.files && e.target.files.length > 0) {
+//       const file = e.target.files[0];
+//       setForm((prev) => ({
+//         ...prev,
+//         videoFile: file,
+//       }));
+//     }
+//   };
+
+//   const removeVideoFile = () => {
+//     setForm((prev) => ({
+//       ...prev,
+//       videoFile: undefined,
+//     }));
+//   };
+
+//   const removeCurrentVideo = () => {
+//     if (
+//       window.confirm("¿Estás seguro de que deseas eliminar el video actual?")
+//     ) {
+//       setForm((prev) => ({
+//         ...prev,
+//         video: "", // Clear current video URL
+//       }));
+//     }
 //   };
 
 //   if (isLoading) {
@@ -205,6 +267,9 @@
 //   const labelClass =
 //     "block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2.5 px-1";
 
+//   const totalImages = form.images?.length || 0;
+//   const allSelected = selectedImages.size === totalImages && totalImages > 0;
+
 //   return (
 //     <div className="p-6 md:p-8 lg:p-10 bg-gray-50/50 min-h-[calc(100vh-4rem)]">
 //       <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto">
@@ -222,7 +287,6 @@
 //                 {property.title}
 //               </h1>
 //               <div className="flex items-center gap-2 mt-2">
-//                 {/* <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> */}
 //                 <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">
 //                   {property.location}
 //                 </p>
@@ -296,7 +360,7 @@
 //               />
 //             </div>
 
-//             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 //               <div className="space-y-1">
 //                 <label className={labelClass}>Capacidad Máxima</label>
 //                 <div className="relative group">
@@ -338,20 +402,61 @@
 //                   />
 //                 </div>
 //               </div>
-//               <div className="space-y-1">
-//                 <label className={labelClass}>Media / Video Link</label>
-//                 <div className="relative group">
-//                   <Video className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
-//                   <input
-//                     type="text"
-//                     value={form.video || ""}
-//                     onChange={(e) =>
-//                       setForm((prev) => ({ ...prev, video: e.target.value }))
-//                     }
-//                     className={`${inputClass} pl-11`}
-//                     placeholder="/assets/video-review.mp4"
-//                   />
-//                 </div>
+//             </div>
+
+//             <div className="space-y-1">
+//               <label className={labelClass}>Video de la Finca</label>
+//               <div className="space-y-4">
+//                 {form.video || form.videoFile ? (
+//                   <div className="relative group rounded-2xl overflow-hidden bg-gray-900 aspect-video ring-1 ring-gray-200 shadow-sm max-h-[400px] mx-auto">
+//                     {form.videoFile ? (
+//                       <video
+//                         src={URL.createObjectURL(form.videoFile)}
+//                         className="w-full h-full object-contain"
+//                         controls
+//                       />
+//                     ) : (
+//                       <video
+//                         src={form.video}
+//                         className="w-full h-full object-contain"
+//                         controls
+//                       />
+//                     )}
+//                     <button
+//                       type="button"
+//                       onClick={
+//                         form.videoFile ? removeVideoFile : removeCurrentVideo
+//                       }
+//                       className="absolute top-3 right-3 p-2 rounded-xl bg-white/90 text-gray-500 hover:text-red-600 shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-[-10px] group-hover:translate-y-0"
+//                     >
+//                       <Trash2 className="w-4 h-4" />
+//                     </button>
+//                     <div className="absolute bottom-3 left-3">
+//                       <span className="text-[10px] font-black uppercase tracking-widest bg-black/40 backdrop-blur-md text-white px-3 py-1.5 rounded-full border border-white/20">
+//                         {form.videoFile ? "Por subir" : "Actual"}
+//                       </span>
+//                     </div>
+//                   </div>
+//                 ) : (
+//                   <div className="relative group">
+//                     <input
+//                       type="file"
+//                       id="video-upload"
+//                       accept="video/*"
+//                       className="hidden"
+//                       onChange={handleVideoSelect}
+//                     />
+//                     <label
+//                       htmlFor="video-upload"
+//                       className="flex flex-col items-center justify-center gap-2 w-full p-8 rounded-2xl border-2 border-dashed border-gray-100 hover:border-primary/30 hover:bg-primary/5 text-gray-400 hover:text-primary cursor-pointer transition-all duration-300"
+//                     >
+//                       <Video className="w-8 h-8 mb-1" />
+//                       <span className="text-sm font-black uppercase tracking-widest">
+//                         Subir Video de la Propiedad
+//                       </span>
+//                     </label>
+//                   </div>
+//                 )}
 //               </div>
 //             </div>
 //           </div>
@@ -481,54 +586,116 @@
 
 //         {/* Images */}
 //         <section className="rounded-[32px] bg-white border border-gray-100 shadow-sm overflow-hidden">
-//           <div className="flex items-center gap-3 px-8 py-6 border-b border-gray-50 bg-gray-50/30">
-//             <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-//               <ImageIcon className="w-5 h-5 text-primary" />
+//           <div className="flex items-center justify-between px-8 py-6 border-b border-gray-50 bg-gray-50/30">
+//             <div className="flex items-center gap-3">
+//               <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+//                 <ImageIcon className="w-5 h-5 text-primary" />
+//               </div>
+//               <div>
+//                 <h2 className="font-black text-lg text-gray-900 tracking-tight">
+//                   Multimedia
+//                 </h2>
+//                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+//                   {(form.images?.length || 0) + (form.files?.length || 0)} Fotos
+//                   seleccionadas
+//                 </p>
+//               </div>
 //             </div>
-//             <div>
-//               <h2 className="font-black text-lg text-gray-900 tracking-tight">
-//                 Multimedia
-//               </h2>
-//               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-0.5">
-//                 {(form.images?.length || 0) + (form.files?.length || 0)} Fotos
-//                 seleccionadas
-//               </p>
-//             </div>
+
+//             {/* Select All / Deselect All toggle — only when there are existing images */}
+//             {totalImages > 0 && (
+//               <button
+//                 type="button"
+//                 onClick={toggleSelectAll}
+//                 className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest border transition-all duration-200
+//                   border-gray-200 text-gray-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50/30 active:scale-95"
+//               >
+//                 {allSelected ? (
+//                   <>
+//                     <CheckCircle2 className="w-4 h-4" />
+//                     Deseleccionar todo
+//                   </>
+//                 ) : (
+//                   <>
+//                     <Circle className="w-4 h-4" />
+//                     Seleccionar todo
+//                   </>
+//                 )}
+//               </button>
+//             )}
 //           </div>
+
 //           <div className="p-8 space-y-10">
 //             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-//               {/* Existing Images */}
-//               {form.images?.map((img, index) => (
-//                 <div
-//                   key={`existing-${index}`}
-//                   className="relative group rounded-3xl overflow-hidden aspect-square bg-gray-100 ring-1 ring-gray-100 shadow-sm"
-//                 >
-//                   <Image
-//                     src={img}
-//                     alt={`Imagen ${index + 1}`}
-//                     fill
-//                     className="object-cover transition-transform duration-500 group-hover:scale-110"
-//                   />
-//                   <div className="absolute inset-0 bg-black/0 group-hover:bg-gradient-to-t group-hover:from-black/60 group-hover:via-transparent transition-all duration-300" />
-//                   <button
-//                     type="button"
-//                     disabled={deleteImageMutation.isPending}
-//                     onClick={() => removeImage(index)}
-//                     className="absolute top-3 right-3 p-2 rounded-xl bg-white/90 text-gray-500 hover:text-orange-600 shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-[-10px] group-hover:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+//               {/* Existing Images — selectable */}
+//               {form.images?.map((img, index) => {
+//                 const isSelected = selectedImages.has(index);
+//                 return (
+//                   <div
+//                     key={`existing-${index}`}
+//                     onClick={() => toggleImageSelection(index)}
+//                     className={`relative group rounded-3xl overflow-hidden aspect-square bg-gray-100 cursor-pointer
+//                       ring-2 shadow-sm transition-all duration-200
+//                       ${
+//                         isSelected
+//                           ? "ring-orange-500 scale-[0.97] shadow-orange-100"
+//                           : "ring-gray-100 hover:ring-orange-200 hover:scale-[0.98]"
+//                       }`}
 //                   >
-//                     {deleteImageMutation.isPending ? (
-//                       <Loader2 className="w-4 h-4 animate-spin" />
-//                     ) : (
-//                       <X className="w-4 h-4" />
-//                     )}
-//                   </button>
-//                   <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-all translate-y-[10px] group-hover:translate-y-0">
-//                     <span className="text-[10px] font-black uppercase tracking-widest bg-white/30 backdrop-blur-md text-white px-3 py-1.5 rounded-full border border-white/20">
-//                       Digital
-//                     </span>
+//                     <Image
+//                       src={img}
+//                       alt={`Imagen ${index + 1}`}
+//                       fill
+//                       className={`object-cover transition-all duration-500 ${isSelected ? "brightness-75" : "group-hover:scale-110"}`}
+//                     />
+
+//                     {/* Overlay on selected */}
+//                     <div
+//                       className={`absolute inset-0 transition-all duration-300 ${
+//                         isSelected
+//                           ? "bg-orange-900/20"
+//                           : "bg-black/0 group-hover:bg-linear-to-t group-hover:from-black/50 group-hover:via-transparent"
+//                       }`}
+//                     />
+
+//                     {/* Checkbox indicator */}
+//                     <div
+//                       className={`absolute top-3 right-3 transition-all duration-200 ${isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"}`}
+//                     >
+//                       <div
+//                         className={`w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2 transition-all duration-200
+//                         ${
+//                           isSelected
+//                             ? "bg-orange-500 border-orange-500"
+//                             : "bg-white/80 border-white backdrop-blur-sm"
+//                         }`}
+//                       >
+//                         {isSelected ? (
+//                           <CheckCircle2 className="w-4 h-4 text-white" />
+//                         ) : (
+//                           <Circle className="w-4 h-4 text-gray-400" />
+//                         )}
+//                       </div>
+//                     </div>
+
+//                     {/* Badge */}
+//                     <div
+//                       className={`absolute bottom-3 left-3 transition-all duration-200 ${isSelected ? "opacity-100 translate-y-0" : "opacity-0 group-hover:opacity-100 translate-y-[10px] group-hover:translate-y-0"}`}
+//                     >
+//                       <span
+//                         className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border
+//                         ${
+//                           isSelected
+//                             ? "bg-orange-500 text-white border-orange-400"
+//                             : "bg-white/30 backdrop-blur-md text-white border-white/20"
+//                         }`}
+//                       >
+//                         {isSelected ? "Seleccionada" : "Digital"}
+//                       </span>
+//                     </div>
 //                   </div>
-//                 </div>
-//               ))}
+//                 );
+//               })}
 
 //               {/* New Files */}
 //               {form.files?.map((file, index) => (
@@ -600,13 +767,64 @@
 //             ) : (
 //               <Save className="w-6 h-6" />
 //             )}
-//             Sincronizar cambios maestros
+//             Sincronizar cambios
 //           </button>
 //         </div>
 //       </form>
+
+//       {/* Floating multi-delete action bar */}
+//       <div
+//         className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ease-out
+//           ${
+//             selectedImages.size > 0
+//               ? "opacity-100 translate-y-0 pointer-events-auto"
+//               : "opacity-0 translate-y-6 pointer-events-none"
+//           }`}
+//       >
+//         <div className="flex items-center gap-4 px-6 py-4 rounded-[28px] bg-gray-950 shadow-2xl shadow-black/40 border border-white/10">
+//           <div className="flex items-center gap-3">
+//             <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center shadow-inner">
+//               <span className="text-white text-sm font-black leading-none">
+//                 {selectedImages.size}
+//               </span>
+//             </div>
+//             <span className="text-white text-sm font-bold">
+//               {selectedImages.size === 1
+//                 ? "imagen seleccionada"
+//                 : "imágenes seleccionadas"}
+//             </span>
+//           </div>
+
+//           <div className="w-px h-8 bg-white/10" />
+
+//           <button
+//             type="button"
+//             onClick={() => setSelectedImages(new Set())}
+//             className="text-gray-400 hover:text-white text-xs font-black uppercase tracking-widest transition-colors px-2 py-1 rounded-xl hover:bg-white/10"
+//           >
+//             Cancelar
+//           </button>
+
+//           <button
+//             type="button"
+//             onClick={deleteSelectedImages}
+//             disabled={isDeletingSelected}
+//             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[16px] bg-red-500 hover:bg-red-600 text-white text-sm font-black transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 shadow-lg shadow-red-500/30"
+//           >
+//             {isDeletingSelected ? (
+//               <Loader2 className="w-4 h-4 animate-spin" />
+//             ) : (
+//               <Trash2 className="w-4 h-4" />
+//             )}
+//             Eliminar{" "}
+//             {selectedImages.size > 1 ? `${selectedImages.size} fotos` : "foto"}
+//           </button>
+//         </div>
+//       </div>
 //     </div>
 //   );
 // }
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -616,6 +834,7 @@ import {
   useProperty,
   useUpdateProperty,
   useDeletePropertyImage,
+  useDeletePropertyVideo,
 } from "@/hooks/use-properties";
 import type { UpdatePropertyPayload } from "@/hooks/use-properties";
 import {
@@ -639,6 +858,16 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface PropertyEditFormProps {
   propertyId: string;
@@ -648,6 +877,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   const { data: property, isLoading, isError } = useProperty(propertyId);
   const updateMutation = useUpdateProperty();
   const deleteImageMutation = useDeletePropertyImage();
+  const deleteVideoMutation = useDeletePropertyVideo();
 
   const [form, setForm] = useState<UpdatePropertyPayload>({});
   const [newFeature, setNewFeature] = useState("");
@@ -656,6 +886,9 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   // Multi-select state
   const [selectedImages, setSelectedImages] = useState<Set<number>>(new Set());
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
+
+  // Delete video dialog state
+  const [showDeleteVideoDialog, setShowDeleteVideoDialog] = useState(false);
 
   useEffect(() => {
     if (updateMutation.isSuccess) {
@@ -770,7 +1003,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       }));
 
       sileo.success({
-        title: `${selectedImages.size} ${selectedImages.size === 1 ? "imagen eliminada" : "imágenes eliminadas"} correctamente`,
+        title: `${selectedImages.size} ${selectedImages.size === 1 ? "imagen eliminada" : "imágenes seleccionadas"} correctamente`,
       });
       setSelectedImages(new Set());
     } catch (error) {
@@ -795,6 +1028,46 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       ...prev,
       files: prev.files?.filter((_, i) => i !== index),
     }));
+  };
+
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setForm((prev) => ({
+        ...prev,
+        videoFile: file,
+      }));
+    }
+  };
+
+  const removeVideoFile = () => {
+    setForm((prev) => ({
+      ...prev,
+      videoFile: undefined,
+    }));
+  };
+
+  const removeCurrentVideo = () => {
+    setShowDeleteVideoDialog(true);
+  };
+
+  const confirmDeleteVideo = async () => {
+    const videoUrl = form.video;
+    if (!videoUrl) return;
+
+    try {
+      await deleteVideoMutation.mutateAsync({
+        id: propertyId,
+        videoUrl,
+      });
+
+      setForm((prev) => ({ ...prev, video: "" }));
+      sileo.success({ title: "Video eliminado correctamente" });
+    } catch (error) {
+      sileo.error({ title: "Error al eliminar el video" });
+    } finally {
+      setShowDeleteVideoDialog(false);
+    }
   };
 
   if (isLoading) {
@@ -941,7 +1214,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-1">
                 <label className={labelClass}>Capacidad Máxima</label>
                 <div className="relative group">
@@ -983,20 +1256,61 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
                   />
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className={labelClass}>Media / Video Link</label>
-                <div className="relative group">
-                  <Video className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
-                  <input
-                    type="text"
-                    value={form.video || ""}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, video: e.target.value }))
-                    }
-                    className={`${inputClass} pl-11`}
-                    placeholder="/assets/video-review.mp4"
-                  />
-                </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className={labelClass}>Video de la Finca</label>
+              <div className="space-y-4">
+                {form.video || form.videoFile ? (
+                  <div className="relative group rounded-2xl overflow-hidden bg-gray-900 aspect-video ring-1 ring-gray-200 shadow-sm max-h-[400px] mx-auto">
+                    {form.videoFile ? (
+                      <video
+                        src={URL.createObjectURL(form.videoFile)}
+                        className="w-full h-full object-contain"
+                        controls
+                      />
+                    ) : (
+                      <video
+                        src={form.video}
+                        className="w-full h-full object-contain"
+                        controls
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={
+                        form.videoFile ? removeVideoFile : removeCurrentVideo
+                      }
+                      className="absolute top-3 right-3 p-2 rounded-xl bg-white/90 text-gray-500 hover:text-red-600 shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-[-10px] group-hover:translate-y-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <div className="absolute bottom-3 left-3">
+                      <span className="text-[10px] font-black uppercase tracking-widest bg-black/40 backdrop-blur-md text-white px-3 py-1.5 rounded-full border border-white/20">
+                        {form.videoFile ? "Por subir" : "Actual"}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative group">
+                    <input
+                      type="file"
+                      id="video-upload"
+                      accept="video/*"
+                      className="hidden"
+                      onChange={handleVideoSelect}
+                    />
+                    <label
+                      htmlFor="video-upload"
+                      className="flex flex-col items-center justify-center gap-2 w-full p-8 rounded-2xl border-2 border-dashed border-gray-100 hover:border-primary/30 hover:bg-primary/5 text-gray-400 hover:text-primary cursor-pointer transition-all duration-300"
+                    >
+                      <Video className="w-8 h-8 mb-1" />
+                      <span className="text-sm font-black uppercase tracking-widest">
+                        Subir Video de la Propiedad
+                      </span>
+                    </label>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1307,7 +1621,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
             ) : (
               <Save className="w-6 h-6" />
             )}
-            Sincronizar cambios maestros
+            Sincronizar cambios
           </button>
         </div>
       </form>
@@ -1361,6 +1675,38 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
           </button>
         </div>
       </div>
+
+      {/* Delete Video Confirmation Dialog */}
+      <AlertDialog
+        open={showDeleteVideoDialog}
+        onOpenChange={setShowDeleteVideoDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar video actual?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción eliminará el video de la propiedad. Podrás subir uno
+              nuevo después de guardar los cambios.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDeleteVideo();
+              }}
+              disabled={deleteVideoMutation.isPending}
+              className="bg-red-500! hover:bg-red-600 text-white"
+            >
+              {deleteVideoMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              Sí, eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

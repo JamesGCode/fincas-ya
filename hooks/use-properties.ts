@@ -41,6 +41,7 @@ export interface UpdatePropertyPayload {
   files?: File[]; // Nuevas imágenes para subir
   features?: string[];
   video?: string;
+  videoFile?: File; // Nuevo archivo de video para subir
   coordinates?: {
     lat: number;
     lng: number;
@@ -102,8 +103,15 @@ const updateProperty = async ({
     await api.patch(`/properties/${id}`, formData);
   }
 
-  // Enviar los demás campos como JSON (sin los files)
-  const { files, ...jsonPayload } = payload;
+  // Si hay un archivo de video, lo subimos
+  if (payload.videoFile) {
+    const formData = new FormData();
+    formData.append("video", payload.videoFile);
+    await api.patch(`/properties/${id}`, formData);
+  }
+
+  // Enviar los demás campos como JSON (sin los files ni videoFile)
+  const { files, videoFile, ...jsonPayload } = payload;
 
   // Solo enviar si hay campos para actualizar además de las imágenes
   const hasOtherFields = Object.keys(jsonPayload).length > 0;
@@ -126,6 +134,18 @@ const deletePropertyImage = async ({
 }): Promise<void> => {
   await api.delete(`/properties/${id}/images`, {
     data: { imageUrl },
+  });
+};
+
+const deletePropertyVideo = async ({
+  id,
+  videoUrl,
+}: {
+  id: string;
+  videoUrl: string;
+}): Promise<void> => {
+  await api.delete(`/properties/${id}/video`, {
+    data: { imageUrl: videoUrl },
   });
 };
 
@@ -173,6 +193,20 @@ export function useDeletePropertyImage() {
     mutationFn: deletePropertyImage,
     onSuccess: (_data, variables) => {
       // Invalidate both the list and the specific detail to keep home tabs synced
+      queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.properties.detail(variables.id),
+      });
+    },
+  });
+}
+/** Mutation para eliminar un video de una propiedad */
+export function useDeletePropertyVideo() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deletePropertyVideo,
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.properties.detail(variables.id),

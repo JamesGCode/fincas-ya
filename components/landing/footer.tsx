@@ -15,9 +15,13 @@ import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
   return (
-    <footer className="bg-black border-t border-white/10 md:px-10">
-      <div className="container mx-auto px-6 pt-20 pb-10">
+    <footer className="bg-black border-t border-white/10 md:px-10 relative overflow-hidden">
+      {/* Subtle top glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
+
+      <div className="container mx-auto px-6 pt-20 pb-10 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          {/* ... (previous grid content remains same) */}
           {/* Brand */}
           <div>
             <Link href="/" className="block mb-5">
@@ -36,25 +40,25 @@ export function Footer() {
             <div className="flex gap-3">
               <a
                 href="#"
-                className="w-9 h-9 rounded-xl bg-black/5 flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+                className="text-white w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all duration-300"
               >
                 <Facebook className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="w-9 h-9 rounded-xl bg-black/5 flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+                className="text-white w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all duration-300"
               >
                 <Instagram className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="w-9 h-9 rounded-xl bg-black/5 flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+                className="w-9 h-9 text-white rounded-xl bg-white/5 flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all duration-300"
               >
                 <Twitter className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="w-9 h-9 rounded-xl bg-black/5 flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+                className="text-white w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all duration-300"
               >
                 <Youtube className="w-4 h-4" />
               </a>
@@ -63,7 +67,9 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold text-sm mb-5 text-white">Enlaces</h4>
+            <h4 className="font-semibold text-sm mb-5 text-white underline decoration-primary/30 decoration-2 underline-offset-8">
+              Enlaces
+            </h4>
             <ul className="space-y-3 text-gray-400 text-sm">
               <li>
                 <Link href="/" className="hover:text-white transition-colors">
@@ -95,7 +101,9 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h4 className="font-semibold text-sm mb-5 text-white">Soporte</h4>
+            <h4 className="font-semibold text-sm mb-5 text-white underline decoration-primary/30 decoration-2 underline-offset-8">
+              Soporte
+            </h4>
             <ul className="space-y-3 text-gray-400 text-sm">
               <li>
                 <Link href="#" className="hover:text-white transition-colors">
@@ -127,7 +135,9 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-semibold text-sm mb-5 text-white">Contacto</h4>
+            <h4 className="font-semibold text-sm mb-5 text-white underline decoration-primary/30 decoration-2 underline-offset-8">
+              Contacto
+            </h4>
             <ul className="space-y-4 text-gray-400 text-sm">
               <li className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-primary" />
@@ -145,43 +155,46 @@ export function Footer() {
           </div>
         </div>
 
-        <Separator className="my-12 bg-border/30" />
+        <Separator className="my-12 bg-white/5" />
 
-        <div className="bg-white rounded-xl p-4 flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
-          <div className="flex flex-wrap justify-center items-center gap-6">
-            <div className="relative h-12 w-24">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-center gap-8 mb-12 shadow-2xl relative group hover:border-white/20 transition-all duration-500">
+          {/* Subtle inner glow */}
+          <div className="absolute inset-0 bg-white/2 rounded-3xl pointer-events-none" />
+
+          <div className="flex flex-wrap justify-center items-center gap-10 relative z-10">
+            <div className="relative h-14 w-28 group/logo transition-all duration-300">
               <Image
                 src="/Marca_país_Colombia_logo.svg.png"
                 alt="Marca Colombia"
                 fill
-                className="object-contain"
+                className="object-contain filter"
               />
             </div>
-            <div className="relative h-12 w-24">
+            <div className="relative h-14 w-28 group/logo transition-all duration-300">
               <Image
                 src="/fontur_logo.png"
                 alt="Fontur"
                 fill
-                className="object-contain"
+                className="object-contain filter"
               />
             </div>
-            <div className="relative h-12 w-24">
+            <div className="relative h-14 w-28 group/logo transition-all duration-300">
               <Image
                 src="/logo_rnt.png"
                 alt="Registro Nacional de Turismo"
                 fill
-                className="object-contain"
+                className="object-contain filter"
               />
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-2 bg-white rounded-xl px-4">
-            <div className="relative h-12 w-32">
+          <div className="flex flex-col items-center gap-2 relative z-10 bg-white px-2 rounded-xl">
+            <div className="relative h-14 w-36 group/logo transition-all duration-300">
               <Image
                 src="/SIC.png"
                 alt="Superintendencia de Industria y Comercio"
                 fill
-                className="object-contain"
+                className="object-contain filter"
               />
             </div>
           </div>
