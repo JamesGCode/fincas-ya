@@ -144,8 +144,14 @@ export default function AdminLayout({
   return (
     <SidebarProvider>
       <AdminSidebar />
-      <SidebarInset className="bg-white">
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-gray-100 bg-white/80 backdrop-blur-md px-6 sticky top-0 z-10">
+      <SidebarInset className="bg-white relative">
+        {/* Aesthetic Background Elements - Contained to avoid horizontal overflow */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-orange-100/20 rounded-full blur-[100px]" />
+        </div>
+
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-gray-100 bg-white/40 backdrop-blur-md px-6 sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <SidebarTrigger className="-ml-1 text-gray-400 hover:text-gray-900 transition-colors" />
             <div className="h-4 w-px bg-gray-100" />
@@ -157,12 +163,12 @@ export default function AdminLayout({
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-400 uppercase">
+            <div className="w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-400 uppercase shadow-sm">
               AD
             </div>
           </div>
         </header>
-        <div className="flex-1 bg-white">{children}</div>
+        <div className="flex-1 bg-transparent relative z-0">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

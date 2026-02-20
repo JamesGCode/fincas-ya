@@ -82,6 +82,37 @@ export const fetchProperty = async (id: string): Promise<PropertyResponse> => {
   return data;
 };
 
+const createProperty = async (
+  payload: UpdatePropertyPayload,
+): Promise<PropertyResponse> => {
+  const { files, videoFile, ...propertyData } = payload;
+
+  // Si hay archivos, usamos FormData con la estructura requerida por el backend
+  if ((files && files.length > 0) || videoFile) {
+    const formData = new FormData();
+
+    // El backend espera la data de la propiedad como un string JSON en el campo "property"
+    formData.append("property", JSON.stringify(propertyData));
+
+    if (files) {
+      files.forEach((file) => {
+        formData.append("images", file);
+      });
+    }
+
+    if (videoFile) {
+      formData.append("video", videoFile);
+    }
+
+    const { data } = await api.post("/properties", formData);
+    return data;
+  }
+
+  // Si no hay archivos, enviamos como JSON normal
+  const { data } = await api.post("/properties", propertyData);
+  return data;
+};
+
 const updateProperty = async ({
   id,
   payload,
@@ -166,6 +197,18 @@ export function useProperty(id: string) {
     queryKey: queryKeys.properties.detail(id),
     queryFn: () => fetchProperty(id),
     enabled: !!id,
+  });
+}
+
+/** Mutation para crear una propiedad */
+export function useCreateProperty() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createProperty,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
+    },
   });
 }
 

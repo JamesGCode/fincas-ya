@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useProperties } from "@/hooks/use-properties";
 import { usePropertiesStore } from "@/hooks/use-properties-store";
 import { PropertiesTable } from "@/components/admin/properties-table";
@@ -99,6 +101,8 @@ export default function PropertiesPage() {
       )
     : filteredProperties;
 
+  const router = useRouter();
+
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
   };
@@ -116,15 +120,15 @@ export default function PropertiesPage() {
   }
 
   return (
-    <div className="p-8 lg:p-12 space-y-10 bg-white min-h-[calc(100vh-4rem)]">
+    <div className="p-8 lg:p-12 space-y-10 bg-transparent min-h-[calc(100vh-4rem)] relative">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+          <h1 className="text-4xl font-black tracking-tight bg-linear-to-br from-gray-900 via-gray-800 to-gray-500 bg-clip-text text-transparent">
             Propiedades
           </h1>
-          <p className="text-sm text-gray-500 mt-1 font-medium">
-            Gestión y administración del catálogo de fincas
+          <p className="text-sm text-gray-500 mt-1 font-bold uppercase tracking-wider opacity-60">
+            Catálogo Maestro de Fincas
           </p>
         </div>
 
@@ -132,7 +136,7 @@ export default function PropertiesPage() {
           <button
             onClick={handleRefresh}
             disabled={isRefetching}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-100 bg-white text-sm font-bold text-gray-600 hover:bg-gray-50 hover:text-gray-900 shadow-sm transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl border border-gray-100 bg-white/60 backdrop-blur-sm text-sm font-bold text-gray-600 hover:bg-white hover:text-gray-900 shadow-sm transition-all disabled:opacity-50 hover:scale-105 active:scale-95"
           >
             <RefreshCw
               className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`}
@@ -140,33 +144,37 @@ export default function PropertiesPage() {
             Sincronizar
           </button>
 
-          <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-900 text-sm font-bold text-white hover:bg-gray-800 shadow-lg shadow-gray-200 transition-all active:scale-[0.98]">
-            <Plus className="w-4 h-4" />
+          <button
+            onClick={() => router.push("/properties/new")}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gray-900 text-sm font-black text-white hover:bg-black shadow-xl shadow-gray-200 transition-all active:scale-[0.98] hover:scale-105"
+          >
+            <Plus className="w-5 h-5" />
             Nueva Finca
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="group rounded-3xl bg-white border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all border-l-4 border-l-emerald-500"
+          whileHover={{ y: -5 }}
+          className="group rounded-[32px] bg-linear-to-br from-white to-emerald-50/30 border border-emerald-100/50 p-8 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all cursor-default"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Building2 className="w-6 h-6 text-emerald-600" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-200 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+              <Building2 className="w-7 h-7" />
             </div>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full uppercase tracking-widest border border-emerald-100">
               Activos
             </span>
           </div>
           <div className="space-y-1">
-            <p className="text-4xl font-black text-gray-900 tracking-tighter">
+            <p className="text-5xl font-black text-gray-900 tracking-tighter">
               {totalProperties}
             </p>
-            <p className="text-xs font-bold text-gray-400 capitalize">
+            <p className="text-xs font-black text-emerald-600/60 uppercase tracking-widest">
               Fincas publicadas
             </p>
           </div>
@@ -176,21 +184,22 @@ export default function PropertiesPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="group rounded-3xl bg-white border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all border-l-4 border-l-blue-500"
+          whileHover={{ y: -5 }}
+          className="group rounded-[32px] bg-linear-to-br from-white to-blue-50/30 border border-blue-100/50 p-8 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all cursor-default"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Users className="w-6 h-6 text-blue-600" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-200 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+              <Users className="w-7 h-7" />
             </div>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-              Capacidad
+            <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full uppercase tracking-widest border border-blue-100">
+              Carga
             </span>
           </div>
           <div className="space-y-1">
-            <p className="text-4xl font-black text-gray-900 tracking-tighter">
+            <p className="text-5xl font-black text-gray-900 tracking-tighter">
               {totalCapacity}
             </p>
-            <p className="text-xs font-bold text-gray-400 capitalize">
+            <p className="text-xs font-black text-blue-600/60 uppercase tracking-widest">
               Huéspedes totales
             </p>
           </div>
@@ -200,25 +209,28 @@ export default function PropertiesPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="group rounded-3xl bg-white border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all border-l-4 border-l-amber-500"
+          whileHover={{ y: -5 }}
+          className="group rounded-[32px] bg-linear-to-br from-white to-amber-50/30 border border-amber-100/50 p-8 shadow-sm hover:shadow-xl hover:shadow-amber-500/10 transition-all cursor-default"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Star className="w-6 h-6 text-amber-500" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-200 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+              <Star className="w-7 h-7" />
             </div>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-              Calidad
+            <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full uppercase tracking-widest border border-amber-100">
+              Rating
             </span>
           </div>
           <div className="space-y-1">
             <div className="flex items-baseline gap-2">
-              <p className="text-4xl font-black text-gray-900 tracking-tighter">
+              <p className="text-5xl font-black text-gray-900 tracking-tighter">
                 {avgRating}
               </p>
-              <span className="text-sm font-bold text-gray-400">/ 5.0</span>
+              <span className="text-sm font-black text-amber-500/60 tracking-widest uppercase">
+                Estrellas
+              </span>
             </div>
-            <p className="text-xs font-bold text-gray-400 capitalize">
-              Rating promedio
+            <p className="text-xs font-black text-amber-600/60 uppercase tracking-widest">
+              Calidad promedio
             </p>
           </div>
         </motion.div>

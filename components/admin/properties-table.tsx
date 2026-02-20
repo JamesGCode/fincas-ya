@@ -57,9 +57,9 @@ export function PropertiesTable({
     }).format(price);
 
   return (
-    <div>
+    <div className="bg-white/50 backdrop-blur-sm">
       {/* Table Header */}
-      <div className="hidden md:grid grid-cols-[80px_2.5fr_1.5fr_100px_150px_60px] gap-4 px-8 py-4 bg-gray-50/30 border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+      <div className="hidden md:grid grid-cols-[80px_2.5fr_1.5fr_100px_150px_60px] gap-4 px-8 py-5 bg-linear-to-r from-gray-50/50 via-gray-50/30 to-transparent border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
         <span>Imagen</span>
         <span>Propiedad & Detalles</span>
         <span>Ubicación</span>
@@ -69,24 +69,21 @@ export function PropertiesTable({
       </div>
 
       {/* Table Body */}
-      <div className="divide-y divide-gray-50">
+      <div className="divide-y divide-gray-50/50">
         {properties.map((property) => (
           <div
             key={property.id}
-            className="grid grid-cols-1 md:grid-cols-[80px_2.5fr_1.5fr_100px_150px_60px] gap-3 md:gap-4 items-center px-8 py-5 hover:bg-orange-50/20 transition-all group relative"
+            className="grid grid-cols-1 md:grid-cols-[80px_2.5fr_1.5fr_100px_150px_60px] gap-3 md:gap-4 items-center px-8 py-6 hover:bg-orange-50/30 transition-all group relative border-l-4 border-l-transparent hover:border-l-orange-500"
           >
-            {/* Active Indicator Line */}
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-
             {/* Image */}
-            <div className="w-16 h-12 rounded-xl overflow-hidden bg-gray-100 shrink-0 hidden md:block shadow-sm ring-1 ring-gray-100 group-hover:scale-105 transition-transform duration-300">
+            <div className="w-16 h-12 rounded-xl overflow-hidden bg-gray-100 shrink-0 hidden md:block shadow-md ring-1 ring-gray-100 group-hover:scale-110 transition-all duration-500 group-hover:shadow-orange-200/50">
               {property.images?.[0] ? (
                 <Image
                   src={property.images[0]}
                   alt={property.title}
                   width={64}
                   height={48}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px] font-bold">
@@ -99,16 +96,16 @@ export function PropertiesTable({
             <div className="min-w-0">
               <Link
                 href={`/properties/${property.id}/edit`}
-                className="font-bold text-sm text-gray-950 truncate group-hover:text-orange-600 transition-colors block"
+                className="font-black text-sm text-gray-900 truncate group-hover:text-orange-600 transition-colors block tracking-tight"
               >
                 {property.title}
               </Link>
-              <div className="flex items-center gap-2 mt-1.5">
-                <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded tracking-widest uppercase">
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-[9px] font-black text-white bg-emerald-500 px-2 py-0.5 rounded-full tracking-widest uppercase shadow-sm shadow-emerald-200">
                   Verificada
                 </span>
                 {property.rating > 4.5 && (
-                  <span className="text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded tracking-widest uppercase">
+                  <span className="text-[9px] font-black text-white bg-amber-500 px-2 py-0.5 rounded-full tracking-widest uppercase shadow-sm shadow-amber-200">
                     Premium
                   </span>
                 )}
@@ -116,17 +113,19 @@ export function PropertiesTable({
             </div>
 
             {/* Location */}
-            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
-                <MapPin className="w-3.5 h-3.5 text-gray-400" />
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-500 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-gray-50 group-hover:bg-orange-100/50 flex items-center justify-center shrink-0 transition-colors">
+                <MapPin className="w-4 h-4 text-gray-400 group-hover:text-orange-500 transition-colors" />
               </div>
-              <span className="truncate">{property.location}</span>
+              <span className="truncate group-hover:text-gray-900 transition-colors">
+                {property.location}
+              </span>
             </div>
 
             {/* Capacity */}
             <div className="flex items-center justify-center">
-              <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full ring-1 ring-gray-100">
-                <Users className="w-3.5 h-3.5 text-gray-400" />
+              <div className="flex items-center gap-2 bg-gray-50 group-hover:bg-white px-3 py-2 rounded-xl ring-1 ring-gray-100 transition-all">
+                <Users className="w-4 h-4 text-gray-400" />
                 <span className="text-sm font-black text-gray-700">
                   {property.capacity}
                 </span>
@@ -135,23 +134,23 @@ export function PropertiesTable({
 
             {/* Price */}
             <div className="text-right">
-              <p className="text-sm font-black text-gray-900">
+              <p className="text-base font-black text-gray-900 group-hover:text-orange-600 transition-colors">
                 {formatPrice(
                   property.seasonPrices?.base ?? property.price ?? 0,
                 )}
               </p>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
                 Temporada Base
               </p>
             </div>
 
             {/* Edit button */}
-            <div className="flex justify-end">
+            <div className="flex justify-end pr-2">
               <Link
                 href={`/properties/${property.id}/edit`}
-                className="w-10 h-10 flex items-center justify-center rounded-xl text-gray-400 hover:text-orange-600 hover:bg-orange-100 transition-all md:opacity-0 md:group-hover:opacity-100 shadow-sm md:shadow-none bg-white md:bg-transparent"
+                className="w-11 h-11 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-orange-500 transition-all md:opacity-0 md:group-hover:opacity-100 shadow-sm hover:shadow-lg hover:shadow-orange-200 active:scale-95"
               >
-                <Pencil className="w-4 h-4" />
+                <Pencil className="w-5 h-5" />
               </Link>
             </div>
           </div>
