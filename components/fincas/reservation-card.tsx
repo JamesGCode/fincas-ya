@@ -21,8 +21,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { BookingQuestionsModal } from "./booking-questions-modal";
 
 interface ReservationCardProps {
+  title: string;
   price: number;
   maxGuests: number;
   rating: number;
@@ -30,6 +32,7 @@ interface ReservationCardProps {
 }
 
 export function ReservationCard({
+  title,
   price,
   maxGuests,
   rating,
@@ -41,8 +44,8 @@ export function ReservationCard({
   });
   const [guests, setGuests] = useState(1);
   const [isGuestsOpen, setIsGuestsOpen] = useState(false);
+  const [isQuestionsOpen, setIsQuestionsOpen] = useState(false);
 
-  // Calculate nights and total price
   const nights = useMemo(() => {
     if (date?.from && date?.to) {
       const days = differenceInDays(date.to, date.from);
@@ -52,7 +55,7 @@ export function ReservationCard({
   }, [date]);
 
   const subtotal = price * nights;
-  const serviceFee = Math.round(subtotal * 0.12); // Example 12% service fee
+  const serviceFee = Math.round(subtotal * 0.12);
   const total = subtotal + serviceFee;
 
   const handleGuestChange = (operation: "increment" | "decrement") => {
@@ -61,6 +64,29 @@ export function ReservationCard({
     } else if (operation === "decrement" && guests > 1) {
       setGuests(guests - 1);
     }
+  };
+
+  const handleReserveClick = () => {
+    setIsQuestionsOpen(true);
+  };
+
+  const handleQuestionsConfirm = () => {
+    setIsQuestionsOpen(false);
+
+    const fromDate = date?.from ? format(date.from, "dd/MM/yyyy") : "";
+    const toDate = date?.to ? format(date.to, "dd/MM/yyyy") : "";
+
+    const message = `Hola, me interesa reservar la finca *${title}*.
+ *Fechas:* ${fromDate} al ${toDate} (${nights} noches)
+ *Huéspedes:* ${guests}
+ *Total aprox:* $${total.toLocaleString("es-CO")} COP
+
+Confirmé los requerimientos de convivencia en la plataforma. ¿Está disponible?`;
+
+    const whatsappUrl = `https://wa.me/573157773937?text=${encodeURIComponent(
+      message,
+    )}`;
+    window.open(whatsappUrl, "_blank");
   };
 
   const formattedDateRange = useMemo(() => {
@@ -78,158 +104,160 @@ export function ReservationCard({
   }, [date]);
 
   return (
-    <div className="sticky top-28 bg-white border border-border/40 rounded-xl p-6 shadow-[0_6px_16px_rgba(0,0,0,0.12)] transition-all duration-300">
-      {/* Header: Price & Rating */}
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <span className="text-2xl font-bold">
-            ${price.toLocaleString("es-CO")}
-          </span>
-          <span className="text-base font-light text-muted-foreground">
-            {" "}
-            noche
-          </span>
+    <>
+      <div className="sticky top-28 bg-white border border-border/40 rounded-xl p-6 shadow-[0_6px_16px_rgba(0,0,0,0.12)] transition-all duration-300">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <span className="text-2xl font-bold">
+              ${price.toLocaleString("es-CO")}
+            </span>
+            <span className="text-base font-light text-muted-foreground">
+              {" "}
+              noche
+            </span>
+          </div>
+          <div className="hidden md:flex items-center gap-1 text-sm pt-1">
+            <Star className="w-4 h-4 fill-foreground text-foreground" />
+            <span className="font-medium">{rating}</span>
+            <span className="text-muted-foreground">
+              · {reviewsCount > 0 ? `${reviewsCount} evaluaciones` : "Nuevo"}
+            </span>
+          </div>
         </div>
-        {/* Only show rating here on mobile or if needed, mainly usually hidden in card if already shown above in header on mobile, but keeping for desktop consistency */}
-        <div className="hidden md:flex items-center gap-1 text-sm pt-1">
-          <Star className="w-4 h-4 fill-foreground text-foreground" />
-          <span className="font-medium">{rating}</span>
-          <span className="text-muted-foreground">
-            · {reviewsCount > 0 ? `${reviewsCount} evaluaciones` : "Nuevo"}
-          </span>
-        </div>
-      </div>
 
-      {/* Input Group */}
-      <div className="rounded-xl mb-4">
-        {/* Date Picker Trigger */}
-        <div className="grid grid-cols-2">
-          <Popover>
+        <div className="rounded-xl mb-4">
+          <div className="grid grid-cols-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="col-span-2 h-auto flex flex-col items-start justify-center py-3 px-3 hover:bg-muted/50 w-full text-left font-normal border border-input rounded-t-xl rounded-b-none border-b-0"
+                >
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">
+                    Llegada - Salida
+                  </span>
+                  <span
+                    className={cn(
+                      "text-sm truncate w-full",
+                      !date?.from && "text-muted-foreground",
+                    )}
+                  >
+                    {formattedDateRange}
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-200" align="end">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={date?.from}
+                  selected={date}
+                  onSelect={setDate}
+                  numberOfMonths={2}
+                  disabled={(date) => date < new Date()}
+                  locale={es}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <Popover open={isGuestsOpen} onOpenChange={setIsGuestsOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
-                className="col-span-2 h-auto flex flex-col items-start justify-center py-3 px-3 hover:bg-muted/50 w-full text-left font-normal border border-input rounded-t-xl rounded-b-none border-b-0"
+                className="w-full h-auto flex flex-col items-start justify-center py-3 px-3 hover:bg-muted/50 text-left font-normal border border-input rounded-b-xl rounded-t-none"
               >
                 <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">
-                  Llegada - Salida
+                  Huéspedes
                 </span>
-                <span
-                  className={cn(
-                    "text-sm truncate w-full",
-                    !date?.from && "text-muted-foreground",
-                  )}
-                >
-                  {formattedDateRange}
-                </span>
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-sm">
+                    {guests} {guests === 1 ? "huésped" : "huéspedes"}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "w-4 h-4 transition-transform duration-200",
+                      isGuestsOpen ? "transform rotate-180" : "",
+                    )}
+                  />
+                </div>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 z-200" align="end">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={date?.from}
-                selected={date}
-                onSelect={setDate}
-                numberOfMonths={2}
-                disabled={(date) => date < new Date()}
-                locale={es}
-              />
+            <PopoverContent className="w-[320px] p-4 z-200" align="end">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-semibold">Huéspedes</div>
+                  <div className="text-sm text-muted-foreground">
+                    Mínimo 1, Máximo {maxGuests}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-full border-input"
+                    onClick={() => handleGuestChange("decrement")}
+                    disabled={guests <= 1}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="w-4 text-center">{guests}</span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-full border-input"
+                    onClick={() => handleGuestChange("increment")}
+                    disabled={guests >= maxGuests}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-4">
+                Este alojamiento tiene una capacidad máxima de {maxGuests}{" "}
+                personas.
+              </p>
             </PopoverContent>
           </Popover>
         </div>
 
-        {/* Guest Selector Trigger */}
-        <Popover open={isGuestsOpen} onOpenChange={setIsGuestsOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              className="w-full h-auto flex flex-col items-start justify-center py-3 px-3 hover:bg-muted/50 text-left font-normal border border-input rounded-b-xl rounded-t-none"
-            >
-              <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">
-                Huéspedes
-              </span>
-              <div className="flex items-center justify-between w-full">
-                <span className="text-sm">
-                  {guests} {guests === 1 ? "huésped" : "huéspedes"}
-                </span>
-                <ChevronDown
-                  className={cn(
-                    "w-4 h-4 transition-transform duration-200",
-                    isGuestsOpen ? "transform rotate-180" : "",
-                  )}
-                />
-              </div>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[320px] p-4 z-200" align="end">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-semibold">Huéspedes</div>
-                <div className="text-sm text-muted-foreground">
-                  Mínimo 1, Máximo {maxGuests}
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 rounded-full border-input"
-                  onClick={() => handleGuestChange("decrement")}
-                  disabled={guests <= 1}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="w-4 text-center">{guests}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 rounded-full border-input"
-                  onClick={() => handleGuestChange("increment")}
-                  disabled={guests >= maxGuests}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mt-4">
-              Este alojamiento tiene una capacidad máxima de {maxGuests}{" "}
-              personas.
+        <Button
+          onClick={handleReserveClick}
+          className="w-full h-12 text-lg font-bold bg-[#fe4a19] hover:bg-[#fe4a19]/90 text-white rounded-lg mb-4 transition-transform active:scale-[0.98]"
+          disabled={!date?.from || !date?.to}
+        >
+          Reservar
+        </Button>
+
+        {date?.from && date?.to && nights > 0 ? (
+          <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <p className="text-center text-sm text-muted-foreground mb-4">
+              No se te cobrará nada todavía
             </p>
-          </PopoverContent>
-        </Popover>
+            <div className="flex justify-between text-base text-muted-foreground underline decoration-muted-foreground/50 underline-offset-2">
+              <span>
+                ${price.toLocaleString("es-CO")} x {nights} noches
+              </span>
+              <span>${subtotal.toLocaleString("es-CO")}</span>
+            </div>
+            <div className="flex justify-between text-base text-muted-foreground underline decoration-muted-foreground/50 underline-offset-2">
+              <span>Tarifa de servicio</span>
+              <span>${serviceFee.toLocaleString("es-CO")}</span>
+            </div>
+            <Separator className="my-4" />
+            <div className="flex justify-between text-lg font-bold">
+              <span>Total antes de impuestos</span>
+              <span>${total.toLocaleString("es-CO")}</span>
+            </div>
+          </div>
+        ) : null}
       </div>
 
-      {/* Reserve Button */}
-      <Button
-        className="w-full h-12 text-lg font-bold bg-[#fe4a19] hover:bg-[#fe4a19]/90 text-white rounded-lg mb-4 transition-transform active:scale-[0.98]"
-        disabled={!date?.from || !date?.to}
-      >
-        Reservar
-      </Button>
-
-      {/* Price Breakdown (only if dates selected) */}
-      {date?.from && date?.to && nights > 0 ? (
-        <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-          <p className="text-center text-sm text-muted-foreground mb-4">
-            No se te cobrará nada todavía
-          </p>
-          <div className="flex justify-between text-base text-muted-foreground underline decoration-muted-foreground/50 underline-offset-2">
-            <span>
-              ${price.toLocaleString("es-CO")} x {nights} noches
-            </span>
-            <span>${subtotal.toLocaleString("es-CO")}</span>
-          </div>
-          <div className="flex justify-between text-base text-muted-foreground underline decoration-muted-foreground/50 underline-offset-2">
-            <span>Tarifa de servicio</span>
-            <span>${serviceFee.toLocaleString("es-CO")}</span>
-          </div>
-          <Separator className="my-4" />
-          <div className="flex justify-between text-lg font-bold">
-            <span>Total antes de impuestos</span>
-            <span>${total.toLocaleString("es-CO")}</span>
-          </div>
-        </div>
-      ) : null}
-    </div>
+      <BookingQuestionsModal
+        isOpen={isQuestionsOpen}
+        onClose={() => setIsQuestionsOpen(false)}
+        onConfirm={handleQuestionsConfirm}
+      />
+    </>
   );
 }

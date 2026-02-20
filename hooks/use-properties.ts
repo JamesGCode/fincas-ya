@@ -117,6 +117,18 @@ const updateProperty = async ({
   return data;
 };
 
+const deletePropertyImage = async ({
+  id,
+  imageUrl,
+}: {
+  id: string;
+  imageUrl: string;
+}): Promise<void> => {
+  await api.delete(`/properties/${id}/images`, {
+    data: { imageUrl },
+  });
+};
+
 // ---------- Hooks ----------
 
 /** Obtener todas las propiedades paginadas */
@@ -146,6 +158,21 @@ export function useUpdateProperty() {
     onSuccess: (_data, variables) => {
       // Invalidar la lista y el detalle
       queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.properties.detail(variables.id),
+      });
+    },
+  });
+}
+
+/** Mutation para eliminar una imagen de una propiedad */
+export function useDeletePropertyImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deletePropertyImage,
+    onSuccess: (_data, variables) => {
+      // Invalidar el detalle de la propiedad para refrescar las imágenes
       queryClient.invalidateQueries({
         queryKey: queryKeys.properties.detail(variables.id),
       });

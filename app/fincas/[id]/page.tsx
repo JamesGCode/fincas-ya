@@ -241,6 +241,7 @@ export default async function FincaDetailPage({ params }: Props) {
               {/* Booking Card */}
               <div className="lg:col-span-1 max-md:px-3 md:ml-4">
                 <ReservationCard
+                  title={finca.title}
                   price={currentPrice}
                   maxGuests={finca.capacity}
                   rating={finca.rating || 0}

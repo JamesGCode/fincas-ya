@@ -74,7 +74,7 @@ function AdminSidebar() {
       {/* Navigation */}
       <SidebarContent className="px-2 py-4 bg-white">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sm text-muted-foreground mb-2 px-2">
+          <SidebarGroupLabel className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-2">
             Gestión de Plataforma
           </SidebarGroupLabel>
           <SidebarGroupContent>

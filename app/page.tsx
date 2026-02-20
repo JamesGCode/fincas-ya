@@ -205,7 +205,7 @@ export default function Home() {
           </div>
 
           <HowItWorks />
-          <PressSection />
+          {/* <PressSection /> */}
           <CtaSection />
           <Footer />
         </>
