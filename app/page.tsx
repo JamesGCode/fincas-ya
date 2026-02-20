@@ -12,6 +12,8 @@ import { useProperties, PropertyResponse } from "@/hooks/use-properties";
 import { useState, useMemo, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHomeStore } from "@/hooks/use-home-store";
+import { SocialSection } from "@/components/home/social-section";
+import { TestimonialsSection } from "@/components/home/testimonials-section";
 
 export default function Home() {
   const {
@@ -31,17 +33,18 @@ export default function Home() {
   const { data: propertiesData, isLoading } = useProperties({ limit: 1000 });
   const fincas = useMemo(() => propertiesData?.data || [], [propertiesData]);
 
-  const filteredFincas = useMemo(() => {
+  // 1. Stage 1: Filter by search bar criteria (Destination + Guests)
+  const searchFilteredFincas = useMemo(() => {
     let result = fincas;
 
-    // Filter by destination
+    // Filter by destination (search bar)
     if (destination) {
       result = result.filter((f: PropertyResponse) =>
         (f.location || "").toLowerCase().includes(destination.toLowerCase()),
       );
     }
 
-    // Filter by guests (capacity)
+    // Filter by guests (search bar)
     if (guests) {
       const guestsCount = parseInt(guests);
       if (!isNaN(guestsCount)) {
@@ -51,7 +54,73 @@ export default function Home() {
       }
     }
 
-    // Region Filtering Logic
+    return result;
+  }, [destination, guests, fincas]);
+
+  // 2. Stage 2: Calculate available regions based on search results
+  const availableRegions = useMemo(() => {
+    const REGION_MAPPING: Record<string, string[]> = {
+      "cerca-bogota": [
+        "viotá",
+        "cundinamarca",
+        "tocaima",
+        "tenjo",
+        "girardot",
+        "nocaima",
+      ],
+      melgar: ["melgar"],
+      villavicencio: ["villavicencio"],
+      anapoima: ["anapoima"],
+      villeta: ["villeta"],
+      playa: ["santa marta", "cartagena"],
+      luxury: [],
+      eventos: [],
+    };
+
+    const available = new Set<string>();
+
+    searchFilteredFincas.forEach((f) => {
+      const location = (f.location || "").toLowerCase();
+      const title = (f.title || "").toLowerCase();
+      const description = (f.description || "").toLowerCase();
+
+      // Check standard regions
+      Object.entries(REGION_MAPPING).forEach(([id, targets]) => {
+        if (targets.some((t) => location.includes(t))) {
+          available.add(id);
+        }
+      });
+
+      // Check Luxury
+      if (
+        title.includes("luxury") ||
+        description.includes("lujo") ||
+        (f.seasonPrices?.base || 0) >= 3000000
+      ) {
+        available.add("luxury");
+      }
+
+      // Check Eventos
+      const searchText = `${title} ${description} ${location}`;
+      if (
+        searchText.includes("evento") ||
+        searchText.includes("boda") ||
+        searchText.includes("matrimonio") ||
+        searchText.includes("fiesta") ||
+        searchText.includes("reunión")
+      ) {
+        available.add("eventos");
+      }
+    });
+
+    return Array.from(available);
+  }, [searchFilteredFincas]);
+
+  // 3. Stage 3: Final filter by category (Region Tab)
+  const filteredFincas = useMemo(() => {
+    let result = searchFilteredFincas;
+
+    // Region Filtering Logic (Tabs)
     const REGION_MAPPING: Record<string, string[]> = {
       "cerca-bogota": [
         "viotá",
@@ -105,10 +174,11 @@ export default function Home() {
     }
 
     return result;
-  }, [category, destination, guests, fincas]);
+  }, [category, searchFilteredFincas]);
 
   const sectionTitle = useMemo(() => {
-    if (destination) return `Resultados para "${destination}"`;
+    if (destination && filteredFincas.length > 0)
+      return `Resultados para "${destination}"`;
 
     const regionLabels: Record<string, string> = {
       todas: "Todas las Fincas",
@@ -123,7 +193,7 @@ export default function Home() {
     };
 
     return regionLabels[category] || "Fincas Destacadas";
-  }, [category, destination]);
+  }, [category, destination, filteredFincas.length]);
 
   const displayFincas = filteredFincas;
 
@@ -166,6 +236,7 @@ export default function Home() {
             <RegionFilter
               selectedRegion={category}
               onSelectRegion={setCategory}
+              availableRegions={availableRegions}
             />
             {isLoading ? (
               <div className="container mx-auto px-0 md:px-0 mb-20 mt-8">
@@ -186,7 +257,10 @@ export default function Home() {
             )}
           </div>
 
-          <HowItWorks />
+          <SocialSection />
+          {/* <InstagramFeed />  */}
+          {/* <HowItWorks /> */}
+          <TestimonialsSection />
           {/* <PressSection /> */}
           <CtaSection />
           <Footer />

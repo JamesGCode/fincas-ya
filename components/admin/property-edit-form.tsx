@@ -298,29 +298,32 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   const allSelected = selectedImages.size === totalImages && totalImages > 0;
 
   return (
-    <div className="p-6 md:p-8 lg:p-10 bg-gray-50/50 min-h-[calc(100vh-4rem)]">
-      <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto">
+    <div className="p-4 md:p-8 lg:p-10 bg-gray-50/50 min-h-[calc(100vh-4rem)]">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-8 md:space-y-12 max-w-4xl mx-auto"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between top-[64px] z-10 bg-white/60 backdrop-blur-2xl py-5 -mx-6 px-6 mb-6 transition-all duration-500">
-          <div className="flex items-center gap-6">
+        <div className="flex items-center justify-between top-[56px] md:top-[64px] z-20 bg-white/80 backdrop-blur-2xl py-4 md:py-5 -mx-4 md:-mx-6 px-4 md:px-6 mb-6 md:mb-10 transition-all duration-500 border-b border-gray-100/50">
+          <div className="flex items-center gap-3 md:gap-6 w-full">
             <Link
               href="/properties"
-              className="p-4 rounded-[20px] border border-gray-100 bg-white hover:bg-gray-50 shadow-sm transition-all hover:scale-105 active:scale-95 group"
+              className="p-3 md:p-4 rounded-xl md:rounded-[20px] border border-gray-100 bg-white hover:bg-gray-50 shadow-sm transition-all active:scale-95 group shrink-0"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-gray-900 transition-colors" />
+              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-gray-900 transition-colors" />
             </Link>
-            <div>
-              <h1 className="text-3xl font-black tracking-tight leading-none bg-linear-to-br from-gray-900 via-gray-800 to-gray-500 bg-clip-text text-transparent">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-3xl font-black tracking-tight leading-none bg-linear-to-br from-gray-900 via-gray-800 to-gray-500 bg-clip-text text-transparent truncate">
                 {property.title}
               </h1>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">
-                    Edición Activa
+              <div className="flex items-center gap-2 mt-1 md:mt-2">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100">
+                  <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[8px] md:text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">
+                    Edición
                   </span>
                 </div>
-                <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                <p className="text-[9px] md:text-[11px] font-black text-gray-400 uppercase tracking-widest truncate">
                   {property.location}
                 </p>
               </div>

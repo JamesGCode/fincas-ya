@@ -80,7 +80,11 @@ export function ReservationCard({
     setIsQuestionsOpen(true);
   };
 
-  const handleQuestionsConfirm = () => {
+  const handleQuestionsConfirm = (answers: {
+    familyOnly: string;
+    events: string;
+    pets: string;
+  }) => {
     setIsQuestionsOpen(false);
 
     const fromDate = date?.from ? format(date.from, "dd/MM/yyyy") : "";
@@ -89,7 +93,11 @@ export function ReservationCard({
     const message = `Hola, me interesa reservar la finca *${title}*.
  *Fechas:* ${fromDate} al ${toDate} (${nights} noches)
  *Huéspedes:* ${guests}
- *Total aprox:* $${total.toLocaleString("es-CO")} COP
+
+ *Información de la visita:*
+ - ¿Plan familiar de descanso?: *${answers.familyOnly}*
+ - ¿Sonido profesional o decoración?: *${answers.events}*
+ - ¿Viajan con mascotas?: *${answers.pets}*
 
 Confirmé los requerimientos de convivencia en la plataforma. ¿Está disponible?`;
 

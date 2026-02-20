@@ -149,7 +149,7 @@ export function HeroSection() {
 
           {/* Search Button */}
           <Button
-            className="w-full md:w-auto inline-flex items-center justify-center rounded-2xl bg-[#f9572a] hover:bg-[#fa6b43] text-white px-10 h-16 transition-all shadow-xl shadow-orange-200/20 hover:shadow-orange-200/40 text-lg font-black mt-2 md:mt-0 active:scale-95 group"
+            className="w-full md:w-auto inline-flex items-center justify-center rounded-2xl bg-[#f9572a] hover:bg-[#fa6b43] text-white px-10 h-12 md:h-16 transition-all shadow-xl shadow-orange-200/20 hover:shadow-orange-200/40 text-lg font-black mt-2 md:mt-0 active:scale-95 group"
             onClick={() => {
               const element = document.getElementById("fincas");
               element?.scrollIntoView({ behavior: "smooth", block: "start" });

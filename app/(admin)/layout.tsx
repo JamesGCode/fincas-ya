@@ -151,19 +151,19 @@ export default function AdminLayout({
           <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-orange-100/20 rounded-full blur-[100px]" />
         </div>
 
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-gray-100 bg-white/40 backdrop-blur-md px-6 sticky top-0 z-10">
-          <div className="flex items-center gap-4">
+        <header className="flex h-14 md:h-16 shrink-0 items-center justify-between gap-2 border-b border-gray-100 bg-white/40 backdrop-blur-md px-4 md:px-6 sticky top-0 z-10">
+          <div className="flex items-center gap-3 md:gap-4">
             <SidebarTrigger className="-ml-1 text-gray-400 hover:text-gray-900 transition-colors" />
             <div className="h-4 w-px bg-gray-100" />
             <div className="flex flex-col">
-              <span className=" font-bold text-gray-900 tracking-tight">
-                Panel de Administración
+              <span className="text-sm md:text-base font-bold text-gray-900 tracking-tight whitespace-nowrap">
+                Panel Admin
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-400 uppercase shadow-sm">
+            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[9px] md:text-[10px] font-bold text-gray-400 uppercase shadow-sm">
               AD
             </div>
           </div>

@@ -14,7 +14,7 @@ export function CtaSection() {
           Únete a más de 500 propietarios que ya generan ingresos con FincasYa
         </p>
         <Button className="bg-[#f9572a] hover:bg-[#fa6b43] text-white px-8 py-6 rounded-full text-lg font-medium shadow-lg hover:shadow-orange-500/20 transition-all">
-          Publica tu finca gratis &rarr;
+          Comunicate con Nosotros &rarr;
         </Button>
       </div>
     </section>

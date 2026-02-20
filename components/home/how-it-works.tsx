@@ -1,67 +1,117 @@
-import { Search, Image, CheckCircle } from "lucide-react";
+import { Search, Calendar, Users, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function HowItWorks() {
-  const steps = [
-    {
-      id: 1,
-      title: "Busca",
-      description: "Elige destino, fechas y número de huéspedes",
-      icon: <Search className="w-6 h-6 text-orange-500" />,
-      color: "bg-orange-100",
-    },
-    {
-      id: 2,
-      title: "Compara",
-      description: "Revisa fotos, reseñas y precios de fincas verificadas",
-      icon: <Image className="w-6 h-6 text-orange-500" />,
-      color: "bg-orange-100",
-    },
-    {
-      id: 3,
-      title: "Reserva",
-      description: "Pago seguro con confirmación inmediata",
-      icon: <CheckCircle className="w-6 h-6 text-orange-500" />,
-      color: "bg-orange-100",
-    },
-  ];
-
   return (
-    <section id="como-funciona" className="bg-gray-50 py-20">
-      <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-          Así de fácil funciona
+    <section
+      id="como-funciona"
+      className="bg-white py-24 relative overflow-hidden"
+    >
+      {/* Background Decor */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none">
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange-100/50 rounded-full blur-[100px]" />
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-primary/10 rounded-full blur-[100px]" />
+      </div>
+
+      <div className="container mx-auto px-6 relative z-10 text-center">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 border border-orange-100 mb-8">
+          <Sparkles className="w-4 h-4 text-orange-600" />
+          <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">
+            Experiencia Simplificada
+          </span>
+        </div>
+
+        <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 tracking-tight">
+          Busca y reserva en{" "}
+          <span className="text-primary italic">segundos</span>
         </h2>
-        <p className="text-gray-500 max-w-2xl mx-auto mb-16">
-          De la búsqueda a la reserva en 3 simples pasos
+
+        <p className="text-gray-500 max-w-2xl mx-auto mb-16 text-lg">
+          Hemos rediseñado el proceso para que encuentres tu descanso ideal sin
+          complicaciones.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative max-w-5xl mx-auto">
-          {/* Connector Line (Desktop only) */}
-          <div className="hidden md:block absolute top-18 left-[16%] right-[16%] h-0.5 border-t-2 border-dashed border-gray-200 -z-10" />
+        <div className="max-w-4xl mx-auto">
+          <div className="relative group">
+            {/* Card Glow */}
+            <div className="absolute -inset-1 bg-linear-to-r from-orange-400 to-primary rounded-[40px] blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
 
-          {steps.map((step) => (
-            <div
-              key={step.id}
-              className="group flex flex-col items-center relative z-10 bg-white p-8 rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-orange-500/10 hover:border-orange-200"
-            >
-              <div
-                className={`w-20 h-20 rounded-full ${step.color} flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110 shadow-inner`}
-              >
-                {step.icon}
+            <div className="relative bg-white border border-gray-100 rounded-[40px] p-8 md:p-12 shadow-2xl flex flex-col md:flex-row items-center gap-12 overflow-hidden hover:border-orange-200 transition-all duration-500">
+              {/* Glass Inner Glow */}
+              <div className="absolute inset-0 bg-linear-to-br from-white via-transparent to-orange-50/30 opacity-50 pointer-events-none" />
+
+              <div className="flex-1 text-left relative z-10">
+                <div className="space-y-8">
+                  <div className="flex items-start gap-5">
+                    <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center shrink-0 shadow-inner">
+                      <Search className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-lg mb-1">
+                        Explora el Paraíso
+                      </h4>
+                      <p className="text-gray-500 text-sm leading-relaxed">
+                        Filtra por destino, presupuesto y comodidades premium.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-5">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0 shadow-inner">
+                      <Calendar className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-lg mb-1">
+                        Sincroniza tus Fechas
+                      </h4>
+                      <p className="text-gray-500 text-sm leading-relaxed">
+                        Disponibilidad en tiempo real para confirmar tu viaje al
+                        instante.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-5">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0 shadow-inner">
+                      <Users className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-lg mb-1">
+                        Invita a los Tuyos
+                      </h4>
+                      <p className="text-gray-500 text-sm leading-relaxed">
+                        Espacios verificados con capacidad garantizada para todo
+                        tu grupo.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* <div className="mt-12">
+                  <Button
+                    size="lg"
+                    className="rounded-2xl px-10 h-16 text-lg font-black tracking-tight shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-95 bg-linear-to-r from-orange-600 to-primary"
+                    onClick={() =>
+                      document
+                        .getElementById("fincas")
+                        ?.scrollIntoView({ behavior: "smooth" })
+                    }
+                  >
+                    Comenzar Búsqueda
+                  </Button>
+                </div> */}
               </div>
 
-              <div className="absolute top-4 right-4 bg-orange-50 text-orange-600 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide border border-orange-100">
-                Paso {step.id}
+              <div className="flex-1 relative w-full aspect-square md:aspect-auto md:h-full max-h-[400px] rounded-3xl overflow-hidden shadow-2xl rotate-2 group-hover:rotate-0 transition-transform duration-700">
+                <img
+                  src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800"
+                  alt="Busca y Reserva"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent" />
               </div>
-
-              <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
-                {step.title}
-              </h3>
-              <p className="text-gray-500 max-w-xs leading-relaxed">
-                {step.description}
-              </p>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </section>

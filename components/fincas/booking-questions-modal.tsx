@@ -16,7 +16,11 @@ import { Check, Info } from "lucide-react";
 interface BookingQuestionsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (answers: {
+    familyOnly: string;
+    events: string;
+    pets: string;
+  }) => void;
 }
 
 export function BookingQuestionsModal({
@@ -34,7 +38,7 @@ export function BookingQuestionsModal({
 
   const handleConfirm = () => {
     if (isFormValid) {
-      onConfirm();
+      onConfirm(answers);
     }
   };
 

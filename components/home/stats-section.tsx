@@ -6,7 +6,7 @@ export function StatsSection() {
     {
       id: 1,
       label: "Fincas verificadas",
-      value: "+500",
+      value: "+388",
       sub: "Revisadas personalmente",
     },
     {

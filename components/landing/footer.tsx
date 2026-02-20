@@ -96,6 +96,11 @@ export function Footer() {
                   Blog
                 </Link>
               </li>
+              <li>
+                <Link href="#" className="hover:text-white transition-colors">
+                  Nosotros
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -157,44 +162,41 @@ export function Footer() {
 
         <Separator className="my-12 bg-white/5" />
 
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-center gap-8 mb-12 shadow-2xl relative group hover:border-white/20 transition-all duration-500">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex justify-center items-center gap-8 mb-12 shadow-2xl relative group hover:border-white/20 transition-all duration-500">
           {/* Subtle inner glow */}
           <div className="absolute inset-0 bg-white/2 rounded-3xl pointer-events-none" />
 
-          <div className="flex flex-wrap justify-center items-center gap-10 relative z-10">
-            <div className="relative h-14 w-28 group/logo transition-all duration-300">
+          <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16 relative z-10">
+            <div className="relative h-10 w-24 grayscale group-hover:grayscale-0 transition-all duration-500 opacity-60 group-hover:opacity-100">
               <Image
                 src="/Marca_país_Colombia_logo.svg.png"
                 alt="Marca Colombia"
                 fill
-                className="object-contain filter"
+                className="object-contain"
               />
             </div>
-            <div className="relative h-14 w-28 group/logo transition-all duration-300">
+            <div className="relative h-10 w-24 grayscale group-hover:grayscale-0 transition-all duration-500 opacity-60 group-hover:opacity-100">
               <Image
                 src="/fontur_logo.png"
                 alt="Fontur"
                 fill
-                className="object-contain filter"
+                className="object-contain"
               />
             </div>
-            <div className="relative h-14 w-28 group/logo transition-all duration-300">
+            <div className="relative h-10 w-24 grayscale group-hover:grayscale-0 transition-all duration-500 opacity-60 group-hover:opacity-100">
               <Image
                 src="/logo_rnt.png"
                 alt="Registro Nacional de Turismo"
                 fill
-                className="object-contain filter"
+                className="object-contain"
               />
             </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-2 relative z-10 bg-white px-2 rounded-xl">
-            <div className="relative h-14 w-36 group/logo transition-all duration-300">
+            <div className="relative h-10 w-28 brightness-0 invert transition-all duration-500 opacity-60 hover:opacity-100 bg-white/10 rounded-lg px-2">
               <Image
                 src="/SIC.png"
                 alt="Superintendencia de Industria y Comercio"
                 fill
-                className="object-contain filter"
+                className="object-contain"
               />
             </div>
           </div>

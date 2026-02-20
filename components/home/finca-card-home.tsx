@@ -125,7 +125,7 @@ export function FincaCardHome({ finca, badge }: FincaCardHomeProps) {
           </h3>
           <div className="flex items-center gap-1 shrink-0">
             <Star className="w-3.5 h-3.5 fill-black text-black" />
-            <span className="text-sm font-medium">{finca.rating}</span>
+            <span className="text-sm font-medium">3.8</span>
             <span className="text-sm text-gray-500">
               ({finca.reviewsCount})
             </span>
