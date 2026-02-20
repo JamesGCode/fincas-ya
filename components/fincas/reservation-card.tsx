@@ -23,6 +23,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { BookingQuestionsModal } from "./booking-questions-modal";
 
+import { useHomeStore } from "@/hooks/use-home-store";
+
 interface ReservationCardProps {
   title: string;
   price: number;
@@ -38,11 +40,18 @@ export function ReservationCard({
   rating,
   reviewsCount = 0,
 }: ReservationCardProps) {
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: undefined,
-    to: undefined,
-  });
-  const [guests, setGuests] = useState(1);
+  const {
+    dateRange: date,
+    setDateRange: setDate,
+    guests,
+    setGuests,
+  } = useHomeStore();
+
+  const guestsCount = useMemo(() => {
+    const parsed = parseInt(guests);
+    return isNaN(parsed) ? 1 : parsed;
+  }, [guests]);
+
   const [isGuestsOpen, setIsGuestsOpen] = useState(false);
   const [isQuestionsOpen, setIsQuestionsOpen] = useState(false);
 
@@ -59,10 +68,11 @@ export function ReservationCard({
   const total = subtotal + serviceFee;
 
   const handleGuestChange = (operation: "increment" | "decrement") => {
-    if (operation === "increment" && guests < maxGuests) {
-      setGuests(guests + 1);
-    } else if (operation === "decrement" && guests > 1) {
-      setGuests(guests - 1);
+    const currentGuests = guestsCount;
+    if (operation === "increment" && currentGuests < maxGuests) {
+      setGuests((currentGuests + 1).toString());
+    } else if (operation === "decrement" && currentGuests > 1) {
+      setGuests((currentGuests - 1).toString());
     }
   };
 
@@ -172,7 +182,7 @@ Confirmé los requerimientos de convivencia en la plataforma. ¿Está disponible
                 </span>
                 <div className="flex items-center justify-between w-full">
                   <span className="text-sm">
-                    {guests} {guests === 1 ? "huésped" : "huéspedes"}
+                    {guestsCount} {guestsCount === 1 ? "huésped" : "huéspedes"}
                   </span>
                   <ChevronDown
                     className={cn(
@@ -197,17 +207,17 @@ Confirmé los requerimientos de convivencia en la plataforma. ¿Está disponible
                     size="icon"
                     className="h-8 w-8 rounded-full border-input"
                     onClick={() => handleGuestChange("decrement")}
-                    disabled={guests <= 1}
+                    disabled={guestsCount <= 1}
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
-                  <span className="w-4 text-center">{guests}</span>
+                  <span className="w-4 text-center">{guestsCount}</span>
                   <Button
                     variant="outline"
                     size="icon"
                     className="h-8 w-8 rounded-full border-input"
                     onClick={() => handleGuestChange("increment")}
-                    disabled={guests >= maxGuests}
+                    disabled={guestsCount >= maxGuests}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>

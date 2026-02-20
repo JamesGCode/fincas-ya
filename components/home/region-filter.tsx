@@ -14,6 +14,7 @@ export function RegionFilter({
   onSelectRegion,
 }: RegionFilterProps) {
   const regions = [
+    { id: "todas", label: "Todas" },
     { id: "cerca-bogota", label: "Cerca a Bogotá" },
     { id: "melgar", label: "Melgar" },
     { id: "villavicencio", label: "Villavicencio" },

@@ -172,7 +172,8 @@ export function useDeletePropertyImage() {
   return useMutation({
     mutationFn: deletePropertyImage,
     onSuccess: (_data, variables) => {
-      // Invalidar el detalle de la propiedad para refrescar las imágenes
+      // Invalidate both the list and the specific detail to keep home tabs synced
+      queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.properties.detail(variables.id),
       });

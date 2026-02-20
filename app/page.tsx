@@ -28,25 +28,6 @@ export default function Home() {
     setIsHydrated(true);
   }, []);
 
-  const filters = { destination, guests };
-  const handleSetFilters = (
-    newFilters:
-      | { destination: string; guests: string }
-      | ((prev: { destination: string; guests: string }) => {
-          destination: string;
-          guests: string;
-        }),
-  ) => {
-    let result;
-    if (typeof newFilters === "function") {
-      result = newFilters({ destination, guests });
-    } else {
-      result = newFilters;
-    }
-    setDestination(result.destination);
-    setGuests(result.guests);
-  };
-
   const { data: propertiesData, isLoading } = useProperties({ limit: 1000 });
   const fincas = useMemo(() => propertiesData?.data || [], [propertiesData]);
 
@@ -130,6 +111,7 @@ export default function Home() {
     if (destination) return `Resultados para "${destination}"`;
 
     const regionLabels: Record<string, string> = {
+      todas: "Todas las Fincas",
       "cerca-bogota": "Cerca a Bogotá",
       melgar: "Melgar",
       villavicencio: "Villavicencio",
@@ -175,7 +157,7 @@ export default function Home() {
         </div>
       ) : (
         <>
-          <HeroSection filters={filters} setFilters={handleSetFilters} />
+          <HeroSection />
 
           <div
             id="fincas"
