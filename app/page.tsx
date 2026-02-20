@@ -7,6 +7,7 @@ import { RegionFilter } from "@/components/home/region-filter";
 import { FeaturedFincas } from "@/components/home/featured-fincas";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { CtaSection } from "@/components/home/cta-section";
+import { PressSection } from "@/components/landing/press-section";
 import { useProperties, PropertyResponse } from "@/hooks/use-properties";
 import { useState, useMemo, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -204,6 +205,7 @@ export default function Home() {
           </div>
 
           <HowItWorks />
+          <PressSection />
           <CtaSection />
           <Footer />
         </>

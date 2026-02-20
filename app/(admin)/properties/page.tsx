@@ -11,7 +11,9 @@ import {
   Users,
   Star,
   Filter,
+  Plus,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import {
@@ -114,104 +116,159 @@ export default function PropertiesPage() {
   }
 
   return (
-    <div className="p-6 md:p-8 lg:p-10 space-y-8 bg-gray-50/50 min-h-[calc(100vh-3.5rem)]">
+    <div className="p-8 lg:p-12 space-y-10 bg-white min-h-[calc(100vh-4rem)]">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-            Gestión de Propiedades
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+            Propiedades
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Administra todas las fincas y propiedades del catálogo
+          <p className="text-sm text-gray-500 mt-1 font-medium">
+            Gestión y administración del catálogo de fincas
           </p>
         </div>
 
-        <button
-          onClick={handleRefresh}
-          disabled={isRefetching}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-all disabled:opacity-50"
-        >
-          <RefreshCw
-            className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`}
-          />
-          Actualizar
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefetching}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-100 bg-white text-sm font-bold text-gray-600 hover:bg-gray-50 hover:text-gray-900 shadow-sm transition-all disabled:opacity-50"
+          >
+            <RefreshCw
+              className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`}
+            />
+            Sincronizar
+          </button>
+
+          <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-900 text-sm font-bold text-white hover:bg-gray-800 shadow-lg shadow-gray-200 transition-all active:scale-[0.98]">
+            <Plus className="w-4 h-4" />
+            Nueva Finca
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-emerald-600" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="group rounded-3xl bg-white border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all border-l-4 border-l-emerald-500"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Building2 className="w-6 h-6 text-emerald-600" />
             </div>
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Total Propiedades
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              Activos
             </span>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{totalProperties}</p>
-        </div>
+          <div className="space-y-1">
+            <p className="text-4xl font-black text-gray-900 tracking-tighter">
+              {totalProperties}
+            </p>
+            <p className="text-xs font-bold text-gray-400 capitalize">
+              Fincas publicadas
+            </p>
+          </div>
+        </motion.div>
 
-        <div className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-600" />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="group rounded-3xl bg-white border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all border-l-4 border-l-blue-500"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Users className="w-6 h-6 text-blue-600" />
             </div>
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Capacidad Total
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              Capacidad
             </span>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{totalCapacity}</p>
-        </div>
+          <div className="space-y-1">
+            <p className="text-4xl font-black text-gray-900 tracking-tighter">
+              {totalCapacity}
+            </p>
+            <p className="text-xs font-bold text-gray-400 capitalize">
+              Huéspedes totales
+            </p>
+          </div>
+        </motion.div>
 
-        <div className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
-              <Star className="w-5 h-5 text-amber-500" />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="group rounded-3xl bg-white border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all border-l-4 border-l-amber-500"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Star className="w-6 h-6 text-amber-500" />
             </div>
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Rating Promedio
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              Calidad
             </span>
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <p className="text-3xl font-bold text-gray-900">{avgRating}</p>
-            <span className="text-sm text-gray-400">/ 5.0</span>
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-2">
+              <p className="text-4xl font-black text-gray-900 tracking-tighter">
+                {avgRating}
+              </p>
+              <span className="text-sm font-bold text-gray-400">/ 5.0</span>
+            </div>
+            <p className="text-xs font-bold text-gray-400 capitalize">
+              Rating promedio
+            </p>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Search + Table */}
-      <div className="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-        {/* Search Bar */}
-        <div className="p-5 border-b border-gray-100">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Buscar por nombre o ubicación..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              />
-            </div>
+      {/* Search + Table Container */}
+      <div className="rounded-[2rem] bg-white border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+        {/* Search Bar Refined */}
+        <div className="p-6 border-b border-gray-50 flex flex-col md:flex-row items-center gap-4">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre, ubicación, detalles..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500/30 transition-all font-medium"
+            />
+          </div>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
             <Select value={region} onValueChange={setRegion}>
-              <SelectTrigger className="w-[200px] bg-gray-50 border-gray-200 rounded-lg h-[42px] text-sm">
-                <Filter className="w-4 h-4 text-gray-400 mr-1" />
-                <SelectValue placeholder="Región" />
+              <SelectTrigger className="w-full md:w-[220px] bg-gray-50/50 border-gray-100 rounded-2xl h-[48px]! text-sm font-bold text-gray-600">
+                <Filter className="w-4 h-4 text-gray-400 mr-2" />
+                <SelectValue placeholder="Todas las regiones" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-2xl border-gray-100 shadow-xl">
                 {REGIONS.map((r) => (
-                  <SelectItem key={r.value} value={r.value}>
+                  <SelectItem
+                    key={r.value}
+                    value={r.value}
+                    className="text-sm font-medium"
+                  >
                     {r.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+
             {(search || region !== "all") && (
-              <span className="text-xs text-gray-400">
-                {currentProperties.length} resultados
-              </span>
+              <button
+                onClick={() => {
+                  setSearch("");
+                  setRegion("all");
+                }}
+                className="p-3 rounded-2xl bg-gray-50 text-gray-400 hover:text-gray-900 transition-colors"
+                title="Limpiar filtros"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
             )}
           </div>
         </div>

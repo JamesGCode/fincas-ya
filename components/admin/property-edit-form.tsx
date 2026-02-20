@@ -133,7 +133,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
 
   if (isLoading) {
     return (
-      <div className="p-6 md:p-8 lg:p-10 bg-gray-50/50 min-h-[calc(100vh-3.5rem)]">
+      <div className="p-6 md:p-8 lg:p-10 bg-gray-50/50 min-h-[calc(100vh-4rem)]">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -180,13 +180,13 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   const inputClass =
     "w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all";
   const labelClass =
-    "block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2";
+    "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1";
 
   return (
-    <div className="p-6 md:p-8 lg:p-10 bg-gray-50/50 min-h-[calc(100vh-3.5rem)]">
+    <div className="p-6 md:p-8 lg:p-10 bg-gray-50/50 min-h-[calc(100vh-4rem)]">
       <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between sticky top-0 z-10 bg-gray-50/50 backdrop-blur-sm py-4 -my-4 mb-4">
+        <div className="flex items-center justify-between sticky top-[64px] z-10 bg-gray-50/50 backdrop-blur-sm py-4 -my-4 mb-4">
           <div className="flex items-center gap-4">
             <Link
               href="/properties"
@@ -195,11 +195,11 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
               <ArrowLeft className="w-4 h-4 text-gray-500 group-hover:text-gray-700" />
             </Link>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-2xl font-black text-gray-900 tracking-tight">
                 {property.title}
               </h1>
-              <p className="text-sm text-gray-400 mt-0.5">
-                Editar información de la propiedad
+              <p className="text-sm font-medium text-gray-400 mt-1">
+                Editar informacion de la propiedad
               </p>
             </div>
           </div>

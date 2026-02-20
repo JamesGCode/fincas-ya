@@ -147,11 +147,71 @@ export function Footer() {
 
         <Separator className="my-12 bg-border/30" />
 
-        <div className="flex flex-col md:flex-row justify-center items-center gap-4 text-xs text-muted-foreground">
-          <p>
-            © {new Date().getFullYear()} FincasYa. Todos los derechos
-            reservados.
-          </p>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
+          <div className="flex flex-wrap justify-center items-center gap-6 opacity-70 hover:opacity-100 transition-opacity">
+            <div className="relative h-12 w-24">
+              <Image
+                src="/Marca_país_Colombia_logo.svg.png"
+                alt="Marca Colombia"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <div className="relative h-12 w-24">
+              <Image
+                src="/fontur_logo.png"
+                alt="Fontur"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <div className="relative h-12 w-24">
+              <Image
+                src="/logo_rnt.png"
+                alt="Registro Nacional de Turismo"
+                fill
+                className="object-contain"
+              />
+            </div>
+            {/* <div className="relative h-14 w-32">
+              <Image
+                src="/superintendencia.png"
+                alt="Superintendencia de Industria y Comercio"
+                fill
+                className="object-contain"
+              />
+            </div> */}
+          </div>
+
+          {/* <div className=" border-white/5 flex flex-col items-center gap-6">
+            <div className="flex flex-col md:flex-row justify-center items-center gap-4 text-xs text-muted-foreground">
+              <p>
+                © {new Date().getFullYear()} FincasYa. Todos los derechos
+                reservados.
+              </p>
+            </div>
+          </div> */}
+          <div className="flex flex-col items-center gap-2 bg-white rounded-xl px-4">
+            <div className="relative h-12 w-32">
+              <Image
+                src="/SIC.png"
+                alt="Superintendencia de Industria y Comercio"
+                fill
+                className="object-contain"
+              />
+            </div>
+            {/* <p className="text-[13px] text-muted-foreground text-center -mt-2.5">
+              Vigilados por Superintendencia de Industria y Comercio
+            </p> */}
+          </div>
+        </div>
+        <div className=" border-white/5 flex flex-col items-center gap-6">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4 text-xs text-muted-foreground">
+            <p>
+              © {new Date().getFullYear()} FincasYa. Todos los derechos
+              reservados.
+            </p>
+          </div>
         </div>
       </div>
     </footer>
