@@ -31,6 +31,8 @@ export function HeroSection() {
     setGuests,
     destination,
     setDestination,
+    propertyName,
+    setPropertyName,
   } = useHomeStore();
 
   const formattedDateRange = useMemo(() => {
@@ -63,6 +65,28 @@ export function HeroSection() {
         />
         {/* Search Bar */}
         <div className="w-full max-w-5xl bg-white rounded-2xl p-4 md:p-2 md:pl-8 shadow-2xl flex flex-col md:flex-row items-center gap-1 md:gap-2">
+          {/* Finca Name */}
+          <div className="flex-1 w-full md:w-auto flex items-center gap-4 md:border-r border-gray-100 md:border-gray-200 pb-4 md:pb-0 md:pr-4">
+            <div className="bg-gray-50 md:bg-transparent p-3 md:p-0 rounded-full md:rounded-none">
+              <Search className="w-5 h-5 text-gray-500 md:hidden" />
+            </div>
+            <div className="text-left w-full">
+              <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest block mb-1">
+                Nombre
+              </label>
+              <div className="flex items-center gap-2">
+                <Search className="w-5 h-5 text-gray-400 hidden md:block" />
+                <Input
+                  type="text"
+                  placeholder="¿Buscas alguna?"
+                  className="border-0 p-0 h-8 text-gray-900 placeholder:text-gray-400 focus-visible:ring-0 font-bold bg-transparent text-base"
+                  value={propertyName}
+                  onChange={(e) => setPropertyName(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Destination */}
           <div className="flex-1 w-full md:w-auto flex items-center gap-4 md:border-r border-gray-100 md:border-gray-200 pb-4 md:pb-0 md:pr-4">
             <div className="bg-gray-50 md:bg-transparent p-3 md:p-0 rounded-full md:rounded-none">
@@ -149,13 +173,13 @@ export function HeroSection() {
 
           {/* Search Button */}
           <Button
-            className="w-full md:w-auto inline-flex items-center justify-center rounded-2xl bg-[#f9572a] hover:bg-[#fa6b43] text-white px-10 h-12 md:h-16 transition-all shadow-xl shadow-orange-200/20 hover:shadow-orange-200/40 text-lg font-black mt-2 md:mt-0 active:scale-95 group"
+            className="w-full md:w-auto inline-flex items-center justify-center rounded-2xl bg-[#f9572a] hover:bg-[#fa6b43] text-white px-10 h-12 md:h-14 transition-all shadow-xl shadow-orange-200/20 hover:shadow-orange-200/40 text-lg font-black mt-2 md:mt-0 active:scale-95 group"
             onClick={() => {
               const element = document.getElementById("fincas");
               element?.scrollIntoView({ behavior: "smooth", block: "start" });
             }}
           >
-            <Search className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform" />
+            <Search className="w-6 h-6 group-hover:scale-110 transition-transform" />
             Buscar
           </Button>
         </div>

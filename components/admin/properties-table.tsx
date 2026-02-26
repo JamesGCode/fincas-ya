@@ -2,8 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Pencil, MapPin, Users } from "lucide-react";
-import type { PropertyResponse } from "@/hooks/use-properties";
+import { Pencil, MapPin, Users, Trash2, Loader2 } from "lucide-react";
+import {
+  useDeleteProperty,
+  type PropertyResponse,
+} from "@/hooks/use-properties";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { sileo } from "sileo";
 
 interface PropertiesTableProps {
   properties: PropertyResponse[];
@@ -14,6 +29,21 @@ export function PropertiesTable({
   properties,
   isLoading,
 }: PropertiesTableProps) {
+  const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
+  const deleteMutation = useDeleteProperty();
+
+  const handleDelete = async () => {
+    if (!propertyToDelete) return;
+
+    try {
+      await deleteMutation.mutateAsync(propertyToDelete);
+      sileo.success({ title: "Propiedad eliminada correctamente" });
+    } catch (error) {
+      sileo.error({ title: "Error al eliminar la propiedad" });
+    } finally {
+      setPropertyToDelete(null);
+    }
+  };
   if (isLoading) {
     return (
       <div className="divide-y divide-gray-100">
@@ -59,13 +89,13 @@ export function PropertiesTable({
   return (
     <div className="bg-white/50 backdrop-blur-sm">
       {/* Table Header */}
-      <div className="hidden md:grid grid-cols-[80px_2.5fr_1.5fr_100px_150px_60px] gap-4 px-8 py-5 bg-linear-to-r from-gray-50/50 via-gray-50/30 to-transparent border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+      <div className="hidden md:grid grid-cols-[80px_2fr_1.2fr_100px_160px_120px] gap-4 px-8 py-5 bg-linear-to-r from-gray-50/50 via-gray-50/30 to-transparent border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
         <span>Imagen</span>
         <span>Propiedad & Detalles</span>
         <span>Ubicación</span>
         <span className="text-center">Capacidad</span>
         <span className="text-right">Tarifa / noche</span>
-        <span></span>
+        <span className="text-right pr-4">Acciones</span>
       </div>
 
       {/* Table Body */}
@@ -73,7 +103,7 @@ export function PropertiesTable({
         {properties.map((property) => (
           <div
             key={property.id}
-            className="flex flex-col md:grid md:grid-cols-[80px_2.5fr_1.5fr_100px_150px_60px] gap-4 md:gap-4 items-start md:items-center px-6 md:px-8 py-6 hover:bg-orange-50/30 transition-all group relative border-l-4 border-l-transparent hover:border-l-orange-500"
+            className="flex flex-col md:grid md:grid-cols-[80px_2fr_1.2fr_100px_160px_120px] gap-4 md:gap-4 items-start md:items-center px-6 md:px-8 py-6 hover:bg-orange-50/30 transition-all group relative border-l-4 border-l-transparent hover:border-l-orange-500"
           >
             {/* Mobile Header (Image + Title + Edit Button) */}
             <div className="flex w-full md:hidden gap-4 items-center mb-2">
@@ -94,7 +124,7 @@ export function PropertiesTable({
               </div>
               <div className="flex-1 min-w-0">
                 <Link
-                  href={`/properties/${property.id}/edit`}
+                  href={`/admin/properties/${property.id}/edit`}
                   className="font-black text-sm text-gray-900 truncate block tracking-tight leading-tight"
                 >
                   {property.title}
@@ -106,7 +136,7 @@ export function PropertiesTable({
                 </div>
               </div>
               <Link
-                href={`/properties/${property.id}/edit`}
+                href={`/admin/properties/${property.id}/edit`}
                 className="w-10 h-10 flex items-center justify-center rounded-xl text-orange-500 bg-orange-50 shadow-sm active:scale-95 shrink-0"
               >
                 <Pencil className="w-4 h-4" />
@@ -133,7 +163,7 @@ export function PropertiesTable({
             {/* Desktop Name & Details */}
             <div className="min-w-0 hidden md:block">
               <Link
-                href={`/properties/${property.id}/edit`}
+                href={`/admin/properties/${property.id}/edit`}
                 className="font-black text-sm text-gray-900 truncate group-hover:text-orange-600 transition-colors block tracking-tight"
               >
                 {property.title}
@@ -185,18 +215,55 @@ export function PropertiesTable({
               </div>
             </div>
 
-            {/* Desktop Edit button */}
-            <div className="hidden md:flex justify-end pr-2">
+            {/* Desktop Action buttons */}
+            <div className="hidden md:flex justify-end gap-2 pr-2">
               <Link
-                href={`/properties/${property.id}/edit`}
-                className="w-11 h-11 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-orange-500 transition-all opacity-0 group-hover:opacity-100 shadow-sm hover:shadow-lg hover:shadow-orange-200 active:scale-95"
+                href={`/admin/properties/${property.id}/edit`}
+                className="w-11 h-11 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-orange-500 transition-all opacity-0 group-hover:opacity-100 shadow-sm hover:shadow-lg hover:shadow-orange-200 active:scale-95 shrink-0"
               >
                 <Pencil className="w-5 h-5" />
               </Link>
+              <button
+                onClick={() => setPropertyToDelete(property.id!)}
+                className="w-11 h-11 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-red-500 transition-all opacity-0 group-hover:opacity-100 shadow-sm hover:shadow-lg hover:shadow-red-200 active:scale-95 shrink-0 cursor-pointer"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
             </div>
           </div>
         ))}
       </div>
+
+      <AlertDialog
+        open={!!propertyToDelete}
+        onOpenChange={(open) => !open && setPropertyToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente
+              la propiedad y todos sus datos asociados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={deleteMutation.isPending}
+              className="bg-red-500! hover:bg-red-600 text-white"
+            >
+              {deleteMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              Sí, eliminar propiedad
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

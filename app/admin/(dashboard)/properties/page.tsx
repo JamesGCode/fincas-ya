@@ -40,11 +40,9 @@ export default function PropertiesPage() {
   const {
     search,
     region,
-    currentPage,
     itemsPerPage,
     setSearch,
     setRegion,
-    setCurrentPage,
     setItemsPerPage,
   } = usePropertiesStore();
 
@@ -64,42 +62,52 @@ export default function PropertiesPage() {
     { value: "Playa", label: "Destinos de Playa" },
   ];
 
-  const isFiltering = region !== "all";
+  // API returns all properties at once — do client-side pagination
+  const [pageIndex, setPageIndex] = useState(0);
 
   const {
     data: propertiesData,
     isLoading,
     isRefetching,
   } = useProperties({
-    page: isFiltering ? 1 : currentPage,
-    limit: isFiltering ? 1000 : itemsPerPage,
-    search,
+    location: region !== "all" ? region : undefined,
   });
 
-  const properties = propertiesData?.data || [];
-  const serverTotal = propertiesData?.total || 0;
+  const properties = propertiesData?.properties || propertiesData?.data || [];
 
-  // Filtrar por región y ordenar alfabéticamente
+  // Client-side search + sort
   const filteredProperties = [...properties]
     .filter((p) => {
-      if (region === "all") return true;
-      if (region === "Playa") {
-        const loc = p.location.toLowerCase();
-        return loc.includes("santa marta") || loc.includes("cartagena");
-      }
-      return p.location.toLowerCase().includes(region.toLowerCase());
+      if (!search) return true;
+      return p.title.toLowerCase().includes(search.toLowerCase());
     })
     .sort((a, b) => a.title.localeCompare(b.title, "es"));
 
-  // Paginación: client-side cuando hay filtro, server-side cuando no
-  const totalItems = isFiltering ? filteredProperties.length : serverTotal;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const currentProperties = isFiltering
-    ? filteredProperties.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage,
-      )
-    : filteredProperties;
+  // Client-side pagination slice
+  const pageStart = pageIndex * itemsPerPage;
+  const currentProperties = filteredProperties.slice(
+    pageStart,
+    pageStart + itemsPerPage,
+  );
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProperties.length / itemsPerPage),
+  );
+  const hasPrev = pageIndex > 0;
+  const hasNext = pageIndex < totalPages - 1;
+
+  const goNext = () => {
+    if (hasNext) setPageIndex((i) => i + 1);
+  };
+
+  const goPrev = () => {
+    if (hasPrev) setPageIndex((i) => i - 1);
+  };
+
+  // Reset to page 0 when region or itemsPerPage changes
+  useEffect(() => {
+    setPageIndex(0);
+  }, [region, itemsPerPage, search]);
 
   const router = useRouter();
 
@@ -107,7 +115,7 @@ export default function PropertiesPage() {
     queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
   };
 
-  const totalProperties = totalItems;
+  const totalProperties = propertiesData?.total ?? properties.length;
   const totalCapacity = properties.reduce((sum, p) => sum + p.capacity, 0) || 0;
   const avgRating = properties.length
     ? (
@@ -146,7 +154,7 @@ export default function PropertiesPage() {
           </button>
 
           <button
-            onClick={() => router.push("/properties/new")}
+            onClick={() => router.push("/admin/properties/new")}
             className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl bg-gray-900 text-xs md:text-sm font-black text-white hover:bg-black shadow-xl shadow-gray-200 transition-all active:scale-[0.98]"
           >
             <Plus className="w-4 h-4 md:w-5 md:h-5" />
@@ -157,7 +165,7 @@ export default function PropertiesPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 relative z-10">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -236,7 +244,7 @@ export default function PropertiesPage() {
             </p>
           </div>
         </motion.div>
-      </div>
+      </div> */}
 
       {/* Search + Table Container */}
       <div className="rounded-[2rem] bg-white border border-gray-100 shadow-sm overflow-hidden flex flex-col">
@@ -315,64 +323,33 @@ export default function PropertiesPage() {
             <span>por página</span>
           </div>
 
-          {totalPages > 1 && (
+          {(hasPrev || hasNext) && (
             <Pagination className="w-auto mx-0">
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
                     className="cursor-pointer"
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    aria-disabled={currentPage === 1}
+                    onClick={goPrev}
+                    aria-disabled={!hasPrev}
                     style={{
-                      pointerEvents: currentPage === 1 ? "none" : "auto",
-                      opacity: currentPage === 1 ? 0.5 : 1,
+                      pointerEvents: !hasPrev ? "none" : "auto",
+                      opacity: !hasPrev ? 0.5 : 1,
                     }}
                   />
                 </PaginationItem>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (page) => {
-                    if (
-                      totalPages > 7 &&
-                      page > 1 &&
-                      page < totalPages &&
-                      Math.abs(page - currentPage) > 1
-                    ) {
-                      if (Math.abs(page - currentPage) === 2) {
-                        return (
-                          <PaginationItem key={page}>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        );
-                      }
-                      return null;
-                    }
-
-                    return (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          className="cursor-pointer"
-                          isActive={page === currentPage}
-                          onClick={() => setCurrentPage(page)}
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    );
-                  },
-                )}
-
+                <PaginationItem>
+                  <span className="px-3 py-1.5 text-xs font-bold text-gray-500">
+                    Pág. {pageIndex + 1} / {totalPages}
+                  </span>
+                </PaginationItem>
                 <PaginationItem>
                   <PaginationNext
                     className="cursor-pointer"
-                    onClick={() =>
-                      setCurrentPage(Math.min(totalPages, currentPage + 1))
-                    }
-                    aria-disabled={currentPage === totalPages}
+                    onClick={goNext}
+                    aria-disabled={!hasNext}
                     style={{
-                      pointerEvents:
-                        currentPage === totalPages ? "none" : "auto",
-                      opacity: currentPage === totalPages ? 0.5 : 1,
+                      pointerEvents: !hasNext ? "none" : "auto",
+                      opacity: !hasNext ? 0.5 : 1,
                     }}
                   />
                 </PaginationItem>

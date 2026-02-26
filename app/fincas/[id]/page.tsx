@@ -260,10 +260,13 @@ export default async function FincaDetailPage({ params }: Props) {
             />
 
             {/* Recommendations */}
-            <Recommendations
-              fincas={recommendedFincas}
-              currentId={finca?.id || id}
-            />
+            {/* <Recommendations
+              fincas={recommendedFincas.map((f) => ({
+                ...f,
+                images: f.images || [],
+              }))}
+              currentId={finca.id}
+            /> */}
           </div>
         </section>
       </div>

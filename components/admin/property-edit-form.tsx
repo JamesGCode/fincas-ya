@@ -8,6 +8,8 @@ import {
   useUpdateProperty,
   useDeletePropertyImage,
   useDeletePropertyVideo,
+  useDeleteProperty,
+  useCatalogs,
 } from "@/hooks/use-properties";
 import type { UpdatePropertyPayload } from "@/hooks/use-properties";
 import {
@@ -28,8 +30,12 @@ import {
   Trash2,
   CheckCircle2,
   Circle,
+  Calendar,
+  PlusCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { formatPriceInput, parseCOP } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
@@ -51,10 +57,24 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   const updateMutation = useUpdateProperty();
   const deleteImageMutation = useDeletePropertyImage();
   const deleteVideoMutation = useDeletePropertyVideo();
+  const deletePropertyMutation = useDeleteProperty();
+  const { data: catalogs } = useCatalogs();
+  const router = useRouter();
 
   const [form, setForm] = useState<UpdatePropertyPayload>({});
+  const [enabledSeasons, setEnabledSeasons] = useState({
+    baja: false,
+    media: false,
+    alta: false,
+  });
+  const [newRule, setNewRule] = useState({
+    nombre: "",
+    fechaDesde: "",
+    fechaHasta: "",
+    valorUnico: 0,
+    activa: true,
+  });
   const [newFeature, setNewFeature] = useState("");
-  const [newImageUrl, setNewImageUrl] = useState("");
 
   // Multi-select state
   const [selectedImages, setSelectedImages] = useState<Set<number>>(new Set());
@@ -62,6 +82,8 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
 
   // Delete video dialog state
   const [showDeleteVideoDialog, setShowDeleteVideoDialog] = useState(false);
+  const [showDeletePropertyDialog, setShowDeletePropertyDialog] =
+    useState(false);
 
   useEffect(() => {
     if (updateMutation.isSuccess) {
@@ -85,12 +107,34 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
         description: property.description,
         location: property.location,
         capacity: property.capacity,
+        code: property.code,
+        type: property.type,
+        category: property.category,
+        // Flat price fields (what the API actually accepts)
+        priceBase:
+          property.priceBase ?? property.seasonPrices?.base ?? property.price,
+        priceBaja: property.priceBaja ?? property.seasonPrices?.baja ?? 0,
+        priceMedia: property.priceMedia ?? property.seasonPrices?.media ?? 0,
+        priceAlta: property.priceAlta ?? property.seasonPrices?.alta ?? 0,
+        pricing: property.pricing || property.seasonPrices?.rules || [],
+        // Flat coords
+        lat: property.lat ?? property.coordinates?.lat,
+        lng: property.lng ?? property.coordinates?.lng,
+        // Legacy nested (kept for display fallback)
         price: property.price,
         seasonPrices: property.seasonPrices,
         images: property.images,
+        imageItems: property.imageItems,
         features: property.features,
         video: property.video,
         coordinates: property.coordinates,
+        catalogIds: property.catalogIds || [],
+      });
+
+      setEnabledSeasons({
+        baja: !!(property.priceBaja || property.seasonPrices?.baja),
+        media: !!(property.priceMedia || property.seasonPrices?.media),
+        alta: !!(property.priceAlta || property.seasonPrices?.alta),
       });
     }
   }, [property]);
@@ -102,6 +146,40 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
     } catch (error) {
       console.error("Error al actualizar:", error);
     }
+  };
+
+  const addPricingRule = () => {
+    if (!newRule.nombre || !newRule.fechaDesde || !newRule.fechaHasta) {
+      sileo.error({ title: "Por favor completa todos los campos de la regla" });
+      return;
+    }
+    setForm((prev) => ({
+      ...prev,
+      pricing: [...(prev.pricing || []), { ...newRule }],
+    }));
+    setNewRule({
+      nombre: "",
+      fechaDesde: "",
+      fechaHasta: "",
+      valorUnico: 0,
+      activa: true,
+    });
+  };
+
+  const removePricingRule = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      pricing: prev.pricing?.filter((_, i) => i !== index),
+    }));
+  };
+
+  const toggleRuleActive = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      pricing: prev.pricing?.map((rule, i) =>
+        i === index ? { ...rule, activa: !rule.activa } : rule,
+      ),
+    }));
   };
 
   const addFeature = () => {
@@ -119,16 +197,6 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       ...prev,
       features: prev.features?.filter((_, i) => i !== index),
     }));
-  };
-
-  const addImage = () => {
-    if (newImageUrl.trim()) {
-      setForm((prev) => ({
-        ...prev,
-        images: [...(prev.images || []), newImageUrl.trim()],
-      }));
-      setNewImageUrl("");
-    }
   };
 
   // Toggle individual image selection
@@ -163,9 +231,10 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
     try {
       await Promise.all(
         indices.map((index) => {
-          const imageUrl = form.images?.[index];
-          if (!imageUrl) return Promise.resolve();
-          return deleteImageMutation.mutateAsync({ id: propertyId, imageUrl });
+          // Use imageItems (has id+url) if available, else skip
+          const imageItem = form.imageItems?.[index];
+          if (!imageItem) return Promise.resolve();
+          return deleteImageMutation.mutateAsync({ imageId: imageItem.id });
         }),
       );
 
@@ -173,6 +242,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       setForm((prev) => ({
         ...prev,
         images: prev.images?.filter((_, i) => !selectedImages.has(i)),
+        imageItems: prev.imageItems?.filter((_, i) => !selectedImages.has(i)),
       }));
 
       sileo.success({
@@ -224,22 +294,37 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
     setShowDeleteVideoDialog(true);
   };
 
+  const toggleCatalog = (catalogId: string) => {
+    setForm((prev) => {
+      const currentIds = prev.catalogIds || [];
+      const newIds = currentIds.includes(catalogId)
+        ? currentIds.filter((id) => id !== catalogId)
+        : [...currentIds, catalogId];
+      return { ...prev, catalogIds: newIds };
+    });
+  };
+
   const confirmDeleteVideo = async () => {
-    const videoUrl = form.video;
-    if (!videoUrl) return;
-
     try {
-      await deleteVideoMutation.mutateAsync({
-        id: propertyId,
-        videoUrl,
-      });
-
+      await deleteVideoMutation.mutateAsync({ id: propertyId });
       setForm((prev) => ({ ...prev, video: "" }));
       sileo.success({ title: "Video eliminado correctamente" });
     } catch (error) {
       sileo.error({ title: "Error al eliminar el video" });
     } finally {
       setShowDeleteVideoDialog(false);
+    }
+  };
+
+  const confirmDeleteProperty = async () => {
+    try {
+      await deletePropertyMutation.mutateAsync(propertyId);
+      sileo.success({ title: "Propiedad eliminada correctamente" });
+      router.push("/admin/properties");
+    } catch (error) {
+      sileo.error({ title: "Error al eliminar la propiedad" });
+    } finally {
+      setShowDeletePropertyDialog(false);
     }
   };
 
@@ -279,7 +364,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
           Verifica que el ID sea correcto
         </p>
         <Link
-          href="/properties"
+          href="/admin/properties"
           className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/90 font-medium transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -304,10 +389,10 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
         className="space-y-8 md:space-y-12 max-w-4xl mx-auto"
       >
         {/* Header */}
-        <div className="flex items-center justify-between top-[56px] md:top-[64px] z-20 bg-white/80 backdrop-blur-2xl py-4 md:py-5 -mx-4 md:-mx-6 px-4 md:px-6 mb-6 md:mb-10 transition-all duration-500 border-b border-gray-100/50">
+        <div className="flex items-center justify-between top-[56px] md:top-[64px] z-20 py-0 -mx-4 md:-mx-6 px-4 md:px-6 mb-6 md:mb-10 transition-all duration-500 border-b border-gray-100/50">
           <div className="flex items-center gap-3 md:gap-6 w-full">
             <Link
-              href="/properties"
+              href="/admin/properties"
               className="p-3 md:p-4 rounded-xl md:rounded-[20px] border border-gray-100 bg-white hover:bg-gray-50 shadow-sm transition-all active:scale-95 group shrink-0"
             >
               <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-gray-900 transition-colors" />
@@ -347,9 +432,10 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
             </div>
           </div>
           <div className="p-8 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Title + Code */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className={labelClass}>Título Premium</label>
+                <label className={labelClass}>Título</label>
                 <input
                   type="text"
                   value={form.title || ""}
@@ -361,48 +447,107 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
                 />
               </div>
               <div className="space-y-1">
-                <label className={labelClass}>Ubicación Geográfica</label>
-                <div className="relative group">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
-                  <input
-                    type="text"
-                    value={form.location || ""}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        location: e.target.value,
-                      }))
-                    }
-                    className={`${inputClass} pl-11`}
-                    placeholder="Ej: Copacabana, Antioquia"
-                  />
-                </div>
+                <label className={labelClass}>Código único</label>
+                <input
+                  type="text"
+                  value={form.code || ""}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, code: e.target.value }))
+                  }
+                  className={inputClass}
+                  placeholder="Ej: FINCA001 o villa-el-sol"
+                />
               </div>
             </div>
 
+            {/* Location */}
             <div className="space-y-1">
-              <label className={labelClass}>Reseña del Alojamiento</label>
+              <label className={labelClass}>Ubicación Geográfica</label>
+              <div className="relative group">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+                <input
+                  type="text"
+                  value={form.location || ""}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, location: e.target.value }))
+                  }
+                  className={`${inputClass} pl-11`}
+                  placeholder="Ej: Copacabana, Antioquia"
+                />
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-1">
+              <label className={labelClass}>Descripción</label>
               <textarea
-                rows={6}
+                rows={5}
                 value={form.description || ""}
                 onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
+                  setForm((prev) => ({ ...prev, description: e.target.value }))
                 }
                 className={`${inputClass} resize-none py-4 leading-relaxed`}
                 placeholder="Describe la experiencia única que ofrece esta propiedad..."
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Type + Category + Capacity */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-1">
-                <label className={labelClass}>Capacidad Máxima</label>
+                <label className={labelClass}>Tipo de propiedad</label>
+                <select
+                  value={form.type || "FINCA"}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, type: e.target.value }))
+                  }
+                  className={inputClass}
+                >
+                  {[
+                    { value: "FINCA", label: "Finca" },
+                    { value: "CASA_CAMPESTRE", label: "Casa Campestre" },
+                    { value: "VILLA", label: "Villa" },
+                    { value: "CABAÑA", label: "Cabaña" },
+                    { value: "GLAMPING", label: "Glamping" },
+                  ].map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className={labelClass}>Categoría</label>
+                <select
+                  value={form.category || "ESTANDAR"}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, category: e.target.value }))
+                  }
+                  className={inputClass}
+                >
+                  {[
+                    { value: "ECONOMICA", label: "Económica" },
+                    { value: "ESTANDAR", label: "Estándar" },
+                    { value: "PREMIUM", label: "Premium" },
+                    { value: "LUJO", label: "Lujo" },
+                    { value: "ECOTURISMO", label: "Ecoturismo" },
+                    { value: "CON_PISCINA", label: "Con Piscina" },
+                    { value: "CERCA_BOGOTA", label: "Cerca a Bogotá" },
+                    { value: "GRUPOS_GRANDES", label: "Grupos Grandes" },
+                    { value: "VIP", label: "VIP" },
+                  ].map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className={labelClass}>Capacidad máxima</label>
                 <div className="relative group">
                   <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                   <input
                     type="number"
+                    min={1}
                     value={form.capacity || ""}
                     onChange={(e) =>
                       setForm((prev) => ({
@@ -414,31 +559,336 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
                   />
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className={labelClass}>Precio por Noche (COP)</label>
+            </div>
+
+            {/* Pricing & Rules */}
+            <div className="space-y-8 pt-4">
+              <div className="h-px bg-gray-100 w-full" />
+
+              {/* Base Price */}
+              <div className="max-w-xs space-y-1.5">
+                <label className={labelClass}>Precio Base (Por noche)</label>
                 <div className="relative group">
-                  <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+                  <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-green-600 transition-colors" />
                   <input
-                    type="number"
-                    value={form.seasonPrices?.base || form.price || ""}
+                    type="text"
+                    required
+                    value={formatPriceInput(form.priceBase || 0)}
                     onChange={(e) =>
                       setForm((prev) => ({
                         ...prev,
-                        seasonPrices: {
-                          ...prev.seasonPrices,
-                          base: Number(e.target.value),
-                          baja: prev.seasonPrices?.baja ?? 0,
-                          media: prev.seasonPrices?.media ?? 0,
-                          alta: prev.seasonPrices?.alta ?? 0,
-                          especiales: prev.seasonPrices?.especiales ?? null,
-                        },
+                        priceBase: parseCOP(e.target.value),
                       }))
                     }
-                    className={`${inputClass} pl-11 font-black text-gray-900`}
+                    className={`${inputClass} pl-11 font-black text-lg text-green-700`}
+                    placeholder="0"
                   />
                 </div>
               </div>
+
+              <div className="h-px bg-gray-100 w-full" />
+
+              {/* Optional Fixed Seasons */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-black text-xs text-gray-400 uppercase tracking-widest">
+                    Temporadas Definidas
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {(
+                    [
+                      { id: "baja", label: "Baja", key: "priceBaja" },
+                      { id: "media", label: "Media", key: "priceMedia" },
+                      { id: "alta", label: "Alta", key: "priceAlta" },
+                    ] as const
+                  ).map((season) => (
+                    <div
+                      key={season.id}
+                      className={`p-4 rounded-3xl border transition-all ${
+                        enabledSeasons[season.id as keyof typeof enabledSeasons]
+                          ? "bg-white border-green-200 shadow-sm"
+                          : "bg-gray-50 border-gray-100 opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">
+                          {season.label}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEnabledSeasons((prev) => ({
+                              ...prev,
+                              [season.id]:
+                                !prev[season.id as keyof typeof enabledSeasons],
+                            }))
+                          }
+                          className={`w-10 h-6 rounded-full relative transition-colors ${
+                            enabledSeasons[
+                              season.id as keyof typeof enabledSeasons
+                            ]
+                              ? "bg-green-500"
+                              : "bg-gray-200"
+                          }`}
+                        >
+                          <div
+                            className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${
+                              enabledSeasons[
+                                season.id as keyof typeof enabledSeasons
+                              ]
+                                ? "left-5"
+                                : "left-1"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {enabledSeasons[
+                        season.id as keyof typeof enabledSeasons
+                      ] && (
+                        <div className="relative group animate-in fade-in slide-in-from-top-2 duration-300">
+                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 group-focus-within:text-green-600 transition-colors" />
+                          <input
+                            type="text"
+                            value={formatPriceInput(
+                              (form[
+                                season.key as keyof UpdatePropertyPayload
+                              ] as number) || 0,
+                            )}
+                            onChange={(e) =>
+                              setForm((prev) => ({
+                                ...prev,
+                                [season.key]: parseCOP(e.target.value),
+                              }))
+                            }
+                            className={`${inputClass} h-10! pl-8 text-sm font-bold`}
+                            placeholder="0"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-100 w-full" />
+
+              {/* Rules Management */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-black text-sm text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-green-500" />
+                    Reglas de Temporada
+                  </h3>
+                </div>
+
+                {/* Rules List */}
+                <div className="grid grid-cols-1 gap-4">
+                  {form.pricing?.map((rule, index) => (
+                    <div
+                      key={index}
+                      className={`flex flex-col md:flex-row items-start md:items-center gap-4 p-5 rounded-3xl border transition-all ${
+                        rule.activa
+                          ? "bg-green-50/30 border-green-100"
+                          : "bg-gray-50 border-gray-100 opacity-75"
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-black text-gray-900">
+                          {rule.nombre}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap bg-white px-2 py-0.5 rounded-full border border-gray-100">
+                            {rule.fechaDesde} — {rule.fechaHasta}
+                          </span>
+                          <span className="text-sm font-black text-green-600">
+                            {new Intl.NumberFormat("es-CO", {
+                              style: "currency",
+                              currency: "COP",
+                              maximumFractionDigits: 0,
+                            }).format(rule.valorUnico)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 ml-auto">
+                        <button
+                          type="button"
+                          onClick={() => toggleRuleActive(index)}
+                          className={`p-2 rounded-xl transition-all ${
+                            rule.activa
+                              ? "bg-green-500 text-white shadow-md shadow-green-200"
+                              : "bg-gray-200 text-gray-500"
+                          }`}
+                          title={rule.activa ? "Desactivar" : "Activar"}
+                        >
+                          {rule.activa ? (
+                            <CheckCircle2 className="w-4 h-4" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removePricingRule(index)}
+                          className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {(!form.pricing || form.pricing.length === 0) && (
+                    <div className="text-center py-10 border-2 border-dashed border-gray-100 rounded-[32px] bg-gray-50/30">
+                      <Calendar className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                      <p className="text-xs font-bold text-gray-400">
+                        No hay reglas de temporada configuradas
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Add New Rule Form */}
+                <div className="bg-gray-50/50 rounded-[32px] p-6 border border-gray-100 space-y-4">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">
+                    Nueva Regla de Temporada
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-gray-500 uppercase px-1">
+                        Nombre
+                      </label>
+                      <input
+                        type="text"
+                        value={newRule.nombre}
+                        onChange={(e) =>
+                          setNewRule((prev) => ({
+                            ...prev,
+                            nombre: e.target.value,
+                          }))
+                        }
+                        className={inputClass}
+                        placeholder="Ej: Semana Santa"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-gray-500 uppercase px-1">
+                        Desde
+                      </label>
+                      <input
+                        type="date"
+                        value={newRule.fechaDesde}
+                        onChange={(e) =>
+                          setNewRule((prev) => ({
+                            ...prev,
+                            fechaDesde: e.target.value,
+                          }))
+                        }
+                        className={inputClass}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-gray-500 uppercase px-1">
+                        Hasta
+                      </label>
+                      <input
+                        type="date"
+                        value={newRule.fechaHasta}
+                        onChange={(e) =>
+                          setNewRule((prev) => ({
+                            ...prev,
+                            fechaHasta: e.target.value,
+                          }))
+                        }
+                        className={inputClass}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-gray-500 uppercase px-1">
+                        Valor por noche
+                      </label>
+                      <input
+                        type="text"
+                        value={formatPriceInput(newRule.valorUnico || 0)}
+                        onChange={(e) =>
+                          setNewRule((prev) => ({
+                            ...prev,
+                            valorUnico: parseCOP(e.target.value),
+                          }))
+                        }
+                        className={inputClass}
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addPricingRule}
+                    className="w-full h-12 rounded-2xl bg-green-600 text-white font-black text-sm hover:bg-green-700 transition-all shadow-lg shadow-green-200 flex items-center justify-center gap-2"
+                  >
+                    <PlusCircle className="w-5 h-5" />
+                    Agregar Regla
+                  </button>
+                </div>
+              </div>
             </div>
+
+            {/* Catalog Selection */}
+            <section className="p-6 md:p-8 rounded-[40px] bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-500 group">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm">
+                  <ListChecks className="w-5 h-5 md:w-6 md:h-6" />
+                </div>
+                <div>
+                  <h2 className="font-black text-lg md:text-xl text-gray-900 tracking-tight">
+                    Catálogos vinculados
+                  </h2>
+                  <p className="text-[9px] md:text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-0.5">
+                    Dónde aparecerá esta finca
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {catalogs?.map((catalog) => {
+                  const isActive = form.catalogIds?.includes(catalog._id);
+                  return (
+                    <button
+                      key={catalog._id}
+                      type="button"
+                      onClick={() => toggleCatalog(catalog._id)}
+                      className={`flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all duration-300 ${
+                        isActive
+                          ? "bg-indigo-50/50 border-indigo-200 text-indigo-700 shadow-sm"
+                          : "bg-gray-50/50 border-transparent text-gray-500 hover:bg-white hover:border-gray-100 hover:shadow-sm"
+                      }`}
+                    >
+                      <div
+                        className={`w-4 h-4 md:w-5 md:h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          isActive
+                            ? "bg-indigo-500 border-indigo-500"
+                            : "bg-white border-gray-200"
+                        }`}
+                      >
+                        {isActive && (
+                          <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white" />
+                        )}
+                      </div>
+                      <span className="font-bold text-xs md:text-sm truncate">
+                        {catalog.name}
+                      </span>
+                    </button>
+                  );
+                })}
+
+                {(!catalogs || catalogs.length === 0) && (
+                  <div className="col-span-full py-8 text-center text-gray-400 text-[10px] font-black uppercase tracking-widest bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-100">
+                    No hay catálogos disponibles
+                  </div>
+                )}
+              </div>
+            </section>
 
             <div className="space-y-1">
               <label className={labelClass}>Video de la Finca</label>
@@ -520,17 +970,18 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
                 <input
                   type="number"
                   step="any"
-                  value={form.coordinates?.lat || ""}
+                  value={form.lat ?? ""}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,
-                      coordinates: {
-                        ...prev.coordinates!,
-                        lat: Number(e.target.value),
-                      },
+                      lat:
+                        e.target.value === ""
+                          ? undefined
+                          : Number(e.target.value),
                     }))
                   }
                   className={inputClass}
+                  placeholder="4.3007"
                 />
               </div>
               <div className="space-y-1">
@@ -538,17 +989,18 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
                 <input
                   type="number"
                   step="any"
-                  value={form.coordinates?.lng || ""}
+                  value={form.lng ?? ""}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,
-                      coordinates: {
-                        ...prev.coordinates!,
-                        lng: Number(e.target.value),
-                      },
+                      lng:
+                        e.target.value === ""
+                          ? undefined
+                          : Number(e.target.value),
                     }))
                   }
                   className={inputClass}
+                  placeholder="-74.8006"
                 />
               </div>
             </div>
@@ -795,8 +1247,46 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
           </div>
         </section>
 
+        {/* Danger Zone */}
+        <section className="rounded-[40px] bg-red-50/30 border border-red-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-red-500/5 transition-all duration-500">
+          <div className="flex items-center gap-4 px-8 py-7 border-b border-red-50 bg-linear-to-br from-red-50/50 to-transparent">
+            <div className="w-12 h-12 rounded-2xl bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-200">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="font-black text-xl text-red-900 tracking-tight">
+                Zona de Peligro
+              </h2>
+              <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mt-0.5">
+                Acciones irreversibles
+              </p>
+            </div>
+          </div>
+          <div className="p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <h3 className="text-base font-black text-gray-900 tracking-tight">
+                  Eliminar esta propiedad
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Una vez que elimines una propiedad, no hay vuelta atrás. Por
+                  favor, asegúrate.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDeletePropertyDialog(true)}
+                className="inline-flex items-center justify-center gap-3 px-8 py-3 rounded-2xl bg-white border-2 border-red-100 text-red-600 font-black hover:bg-red-50 hover:border-red-200 transition-all active:scale-95 group shadow-sm hover:shadow-md"
+              >
+                <Trash2 className="w-5 h-5 group-hover:shake" />
+                Eliminar Propiedad
+              </button>
+            </div>
+          </div>
+        </section>
+
         {/* Botón de guardar */}
-        <div className="sticky bottom-8 z-20 px-6 py-4 bg-white/60 backdrop-blur-2xl border border-white/40 rounded-3xl shadow-2xl shadow-orange-500/20">
+        <div className="sticky bottom-4 z-20 px-6 py-4 bg-white/60 backdrop-blur-2xl border border-white/40 rounded-3xl shadow-2xl shadow-orange-500/20">
           <button
             type="submit"
             disabled={updateMutation.isPending}
@@ -895,6 +1385,38 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
               ) : null}
               Sí, eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Property Confirmation Dialog */}
+      <AlertDialog
+        open={showDeletePropertyDialog}
+        onOpenChange={setShowDeletePropertyDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente
+              la propiedad y todos sus datos asociados del servidor.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDeleteProperty();
+              }}
+              disabled={deletePropertyMutation.isPending}
+              className="bg-red-500! hover:bg-red-600 text-white"
+            >
+              {deletePropertyMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              Sí, eliminar propiedad
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://api.fincasya.cloud",
+  baseURL: "https://app.fincasya.cloud",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },

@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { Building2, ChevronLeft } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Building2, ChevronLeft, LogOut } from "lucide-react";
+import { useEffect } from "react";
+import { sileo } from "sileo";
 import {
   Sidebar,
   SidebarContent,
@@ -20,34 +22,68 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { logout, getSession } from "@/lib/auth";
+import { useAuthStore } from "@/lib/auth-store";
 
 const navItems = [
   {
     label: "Propiedades",
-    href: "/properties",
+    href: "/admin/properties",
     icon: Building2,
   },
 ];
 
 function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, setUser, clearUser } = useAuthStore();
+
+  // Load session on mount if not already in store
+  useEffect(() => {
+    if (!user) {
+      getSession().then((sessionUser) => {
+        if (sessionUser) setUser(sessionUser);
+      });
+    }
+  }, [user, setUser]);
+
+  async function handleLogout() {
+    try {
+      await logout();
+      clearUser();
+      sileo.success({ title: "Sesión cerrada correctamente" });
+      router.push("/admin/login");
+    } catch {
+      sileo.error({ title: "Error al cerrar sesión" });
+    }
+  }
+
+  // Get user initials for avatar
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .slice(0, 2)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : (user?.email?.[0]?.toUpperCase() ?? "AD");
 
   return (
     <Sidebar
-      collapsible="icon"
-      className="border-r border-gray-100 bg-white group-data-[collapsible=icon]:w-[65px]"
+      collapsible="offcanvas"
+      className="border-r border-zinc-200 bg-zinc-100"
     >
       {/* Header */}
-      <SidebarHeader className="p-4 border-b border-gray-50 bg-white/50 backdrop-blur-sm">
+      <SidebarHeader className="p-4 border-b border-zinc-200/50 bg-transparent">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               size="sm"
               asChild
               tooltip="FincasYa Admin"
-              className="hover:bg-transparent group-data-[collapsible=icon]:p-0"
+              className="hover:bg-transparent"
             >
-              <Link href="/properties">
+              <Link href="/admin/properties">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-xl bg-orange-50 overflow-hidden shadow-inner">
                   <Image
                     src="/favicon.png"
@@ -72,7 +108,7 @@ function AdminSidebar() {
       </SidebarHeader>
 
       {/* Navigation */}
-      <SidebarContent className="px-2 py-4 bg-white">
+      <SidebarContent className="px-2 py-4 bg-transparent">
         <SidebarGroup>
           <SidebarGroupLabel className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-2">
             Gestión de Plataforma
@@ -93,14 +129,14 @@ function AdminSidebar() {
                         h-10 px-4 rounded-xl transition-all duration-200
                         ${
                           isActive
-                            ? "bg-orange-50 text-orange-600 font-bold shadow-sm"
-                            : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                            ? "bg-primary! text-white! font-bold shadow-md shadow-primary/20"
+                            : "text-gray-500 hover:bg-gray-200/50 hover:text-gray-900"
                         }
                       `}
                     >
                       <Link href={item.href}>
                         <item.icon
-                          className={`w-4 h-4 ${isActive ? "text-orange-600" : "text-gray-400"}`}
+                          className={`w-4 h-4 ${isActive ? "text-white!" : "text-gray-400"}`}
                         />
                         <span className="text-sm">{item.label}</span>
                       </Link>
@@ -114,7 +150,7 @@ function AdminSidebar() {
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="p-4 border-t border-gray-50 bg-white">
+      <SidebarFooter className="p-4 border-t border-zinc-200/50 bg-transparent space-y-1">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -126,6 +162,16 @@ function AdminSidebar() {
                 <ChevronLeft className="w-4 h-4" />
                 <span className="text-sm font-medium">Sitio Web</span>
               </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Cerrar Sesión"
+              className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl cursor-pointer"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm font-medium">Cerrar Sesión</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -141,6 +187,17 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { user } = useAuthStore();
+
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .slice(0, 2)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : (user?.email?.[0]?.toUpperCase() ?? "AD");
+
   return (
     <SidebarProvider>
       <AdminSidebar />
@@ -162,9 +219,19 @@ export default function AdminLayout({
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[9px] md:text-[10px] font-bold text-gray-400 uppercase shadow-sm">
-              AD
+          <div className="flex items-center gap-3">
+            {user && (
+              <div className="hidden sm:flex flex-col items-end">
+                <span className="text-xs font-semibold text-gray-700 leading-none">
+                  {user.name || "Administrador"}
+                </span>
+                <span className="text-[10px] text-gray-400 leading-none mt-0.5">
+                  {user.email}
+                </span>
+              </div>
+            )}
+            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-orange-50 border border-orange-100 flex items-center justify-center text-[9px] md:text-[10px] font-bold text-orange-500 uppercase shadow-sm">
+              {initials}
             </div>
           </div>
         </header>

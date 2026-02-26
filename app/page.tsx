@@ -5,9 +5,7 @@ import { Footer } from "@/components/landing/footer";
 import { HeroSection } from "@/components/home/hero-section";
 import { RegionFilter } from "@/components/home/region-filter";
 import { FeaturedFincas } from "@/components/home/featured-fincas";
-import { HowItWorks } from "@/components/home/how-it-works";
 import { CtaSection } from "@/components/home/cta-section";
-import { PressSection } from "@/components/landing/press-section";
 import { useProperties, PropertyResponse } from "@/hooks/use-properties";
 import { useState, useMemo, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,14 +14,8 @@ import { SocialSection } from "@/components/home/social-section";
 import { TestimonialsSection } from "@/components/home/testimonials-section";
 
 export default function Home() {
-  const {
-    category,
-    destination,
-    guests,
-    setCategory,
-    setDestination,
-    setGuests,
-  } = useHomeStore();
+  const { category, destination, guests, propertyName, setCategory } =
+    useHomeStore();
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -31,7 +23,10 @@ export default function Home() {
   }, []);
 
   const { data: propertiesData, isLoading } = useProperties({ limit: 1000 });
-  const fincas = useMemo(() => propertiesData?.data || [], [propertiesData]);
+  const fincas = useMemo(
+    () => propertiesData?.properties || propertiesData?.data || [],
+    [propertiesData],
+  );
 
   // 1. Stage 1: Filter by search bar criteria (Destination + Guests)
   const searchFilteredFincas = useMemo(() => {
@@ -54,8 +49,15 @@ export default function Home() {
       }
     }
 
+    // Filter by name (search bar)
+    if (propertyName) {
+      result = result.filter((f: PropertyResponse) =>
+        (f.title || "").toLowerCase().includes(propertyName.toLowerCase()),
+      );
+    }
+
     return result;
-  }, [destination, guests, fincas]);
+  }, [destination, guests, fincas, propertyName]);
 
   // 2. Stage 2: Calculate available regions based on search results
   const availableRegions = useMemo(() => {
@@ -194,7 +196,6 @@ export default function Home() {
 
     return regionLabels[category] || "Fincas Destacadas";
   }, [category, destination, filteredFincas.length]);
-
   const displayFincas = filteredFincas;
 
   // Render logic

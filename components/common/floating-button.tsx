@@ -8,8 +8,9 @@ import { motion } from "framer-motion";
 export function FloatingButton() {
   const pathname = usePathname();
 
-  // No mostrar en rutas de admin
-  if (pathname.startsWith("/properties")) return null;
+  // No mostrar en rutas de admin o propiedades
+  if (pathname.startsWith("/admin") || pathname.startsWith("/properties"))
+    return null;
 
   return (
     <motion.div

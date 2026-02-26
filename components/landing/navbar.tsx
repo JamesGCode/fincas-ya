@@ -38,8 +38,10 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        "w-full z-50 transition-all duration-300 py-5",
-        isHome ? "absolute top-0 px-6" : "relative bg-background px-6 mb-0",
+        "w-full z-50 transition-all duration-300",
+        isHome
+          ? "absolute top-0 px-6 py-5"
+          : "relative bg-background px-6 mb-0",
       )}
     >
       <div
@@ -51,11 +53,11 @@ export function Navbar() {
         {isFincaPage && (
           <Link href="/" className="relative z-50">
             <Image
-              src="/favicon.png"
+              src="/dark-logo.svg"
               alt="Fincas Ya"
-              width={40}
+              width={140}
               height={40}
-              className="w-10 h-10 object-contain"
+              className="w-36 h-auto object-contain pill-outline"
             />
           </Link>
         )}

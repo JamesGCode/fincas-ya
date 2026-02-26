@@ -1,34 +1,119 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { queryKeys } from "@/lib/query-keys";
-import type { Finca } from "@/lib/data";
 
-// ---------- Types ----------
+// ---------- Types matching REAL API responses ----------
+
+/**
+ * Image item with id+url — returned by GET /api/fincas/:id as "imageItems"
+ * Used for delete operations where we need the imageId.
+ */
+export interface PropertyImageItem {
+  id: string;
+  url: string;
+}
+
+export interface PricingRule {
+  nombre: string;
+  fechaDesde: string;
+  fechaHasta: string;
+  valorUnico: number;
+  activa: boolean;
+}
+
+export interface Catalog {
+  _id: string;
+  id?: string;
+  name: string;
+  isDefault: boolean;
+  order: number;
+  whatsappCatalogId?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/**
+ * Mirrors the actual API response from GET /api/fincas and GET /api/fincas/:id.
+ *
+ * List endpoint shape: { hasMore, properties: PropertyResponse[] }
+ * Detail shape: PropertyResponse directly
+ *
+ * Key notes:
+ * - `_id`       — Convex document ID (used everywhere as the property id)
+ * - `images`    — plain string[] (CDN URLs) — used by display components
+ * - `imageItems`— [{id, url}] — only present in the detail endpoint; used to delete by id
+ * - Coordinates — flat `lat` / `lng` fields (not nested)
+ * - Prices      — flat `priceBase` / `priceBaja` / `priceMedia` / `priceAlta`
+ */
 export interface PropertyResponse {
+  _id: string;
+  /** Always populated by normalizeProperty() from _id */
   id: string;
   title: string;
   description: string;
   location: string;
   capacity: number;
+  category?: string;
+  type?: string;
+  code?: string;
+  // Fixed seasonal prices (optional)
+  priceBase?: number;
+  priceBaja?: number;
+  priceMedia?: number;
+  priceAlta?: number;
+  // Dynamic rules
+  pricing?: PricingRule[];
+  // Shortcut for display (always populated by normalizeProperty)
   price: number;
-  rating: number;
-  reviewsCount: number;
+  // Images: plain URLs from list & detail
   images: string[];
+  // Image objects with ids — only in detail response
+  imageItems?: PropertyImageItem[];
   features: string[];
   video?: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
+  // Flat coords
+  lat?: number;
+  lng?: number;
+  catalogIds?: string[];
+  // Legacy nested (some components read this)
+  /** Always populated by normalizeProperty (defaults to {lat:0,lng:0}) */
+  coordinates: { lat: number; lng: number };
+  // Legacy nested prices (some components read this)
   seasonPrices?: {
     base: number;
     baja: number;
     media: number;
     alta: number;
-    especiales: number | null;
+    rules: PricingRule[];
   };
+  rating: number;
+  reviewsCount: number;
   isFavorite?: boolean;
   isNew?: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+  _creationTime?: number;
+}
+
+/** List endpoint response */
+export interface PaginatedResponse<T> {
+  hasMore: boolean;
+  properties: T[];
+  // nextCursor is present when the API evolves to support it
+  nextCursor?: string | null;
+  // The migrated code also may produce a .data field — keep for compat
+  data?: T[];
+  total?: number;
+}
+
+export interface PropertiesParams {
+  limit?: number;
+  location?: string;
+  minCapacity?: number;
+  type?: string;
+  category?: string;
+  maxPrice?: number;
+  cursor?: string;
 }
 
 export interface UpdatePropertyPayload {
@@ -37,80 +122,140 @@ export interface UpdatePropertyPayload {
   location?: string;
   capacity?: number;
   price?: number;
-  images?: string[];
-  files?: File[]; // Nuevas imágenes para subir
+  code?: string;
+  type?: string;
+  category?: string;
+  priceBase?: number;
+  priceBaja?: number;
+  priceMedia?: number;
+  priceAlta?: number;
+  pricing?: PricingRule[];
+  lat?: number;
+  lng?: number;
+  catalogIds?: string[];
   features?: string[];
   video?: string;
-  videoFile?: File; // Nuevo archivo de video para subir
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
+  images?: string[];
+  imageItems?: PropertyImageItem[];
+  coordinates?: { lat: number; lng: number };
   seasonPrices?: {
     base: number;
     baja: number;
     media: number;
     alta: number;
-    especiales: number | null;
+    rules: PricingRule[];
+  };
+  files?: File[];
+  videoFile?: File;
+}
+
+// ---------- Helpers ----------
+
+/**
+ * Normalises any PropertyResponse so that:
+ * - `.id` is always populated (falls back to `._id`)
+ * - `.coordinates` is populated from flat lat/lng
+ * - `.seasonPrices` is populated from flat price fields
+ * - `.price` defaults to priceBase
+ */
+export function normalizeProperty(p: any): PropertyResponse {
+  return {
+    ...p,
+    id: p._id || p.id,
+    price: p.priceBase ?? 0,
+    reviewsCount: p.reviewsCount ?? 0,
+    coordinates:
+      p.coordinates ??
+      (p.lat !== undefined && p.lng !== undefined
+        ? { lat: p.lat, lng: p.lng }
+        : { lat: 0, lng: 0 }),
+    seasonPrices: {
+      base: p.priceBase ?? 0,
+      baja: p.priceBaja ?? 0,
+      media: p.priceMedia ?? 0,
+      alta: p.priceAlta ?? 0,
+      rules: p.pricing || [],
+    },
   };
 }
 
 // ---------- API functions ----------
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface PropertiesParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-}
 
 export const fetchProperties = async (
   params: PropertiesParams = {},
 ): Promise<PaginatedResponse<PropertyResponse>> => {
-  const { data } = await api.get("/properties", { params });
+  const cleanParams = Object.fromEntries(
+    Object.entries(params).filter(
+      ([, v]) => v !== "" && v !== undefined && v !== null,
+    ),
+  );
+  const { data } = await api.get("/api/fincas", { params: cleanParams });
+  // Normalise items
+  if (data.properties) {
+    data.properties = data.properties.map(normalizeProperty);
+  }
   return data;
 };
 
 export const fetchProperty = async (id: string): Promise<PropertyResponse> => {
-  const { data } = await api.get(`/properties/${id}`);
+  const { data } = await api.get(`/api/fincas/${id}`);
+  return normalizeProperty(data);
+};
+
+export const fetchCatalogs = async (): Promise<Catalog[]> => {
+  const { data } = await api.get("/api/catalogs");
   return data;
 };
 
 const createProperty = async (
   payload: UpdatePropertyPayload,
 ): Promise<PropertyResponse> => {
-  const { files, videoFile, ...propertyData } = payload;
+  const formData = new FormData();
 
-  // Si hay archivos, usamos FormData con la estructura requerida por el backend
-  if ((files && files.length > 0) || videoFile) {
-    const formData = new FormData();
+  if (payload.title) formData.append("title", payload.title);
+  if (payload.description) formData.append("description", payload.description);
+  if (payload.location) formData.append("location", payload.location);
+  if (payload.capacity !== undefined)
+    formData.append("capacity", String(payload.capacity));
+  if (payload.code) formData.append("code", payload.code);
+  if (payload.type) formData.append("type", payload.type);
+  if (payload.category) formData.append("category", payload.category);
 
-    // El backend espera la data de la propiedad como un string JSON en el campo "property"
-    formData.append("property", JSON.stringify(propertyData));
-
-    if (files) {
-      files.forEach((file) => {
-        formData.append("images", file);
-      });
-    }
-
-    if (videoFile) {
-      formData.append("video", videoFile);
-    }
-
-    const { data } = await api.post("/properties", formData);
-    return data;
+  if (payload.catalogIds && payload.catalogIds.length > 0) {
+    payload.catalogIds.forEach((id) => formData.append("catalogIds", id));
   }
 
-  // Si no hay archivos, enviamos como JSON normal
-  const { data } = await api.post("/properties", propertyData);
-  return data;
+  // Pricing Rules
+  if (payload.priceBase !== undefined)
+    formData.append("priceBase", String(payload.priceBase));
+  if (payload.priceBaja !== undefined)
+    formData.append("priceBaja", String(payload.priceBaja));
+  if (payload.priceMedia !== undefined)
+    formData.append("priceMedia", String(payload.priceMedia));
+  if (payload.priceAlta !== undefined)
+    formData.append("priceAlta", String(payload.priceAlta));
+
+  if (payload.pricing) {
+    formData.append("pricing", JSON.stringify(payload.pricing));
+  }
+
+  // Flat coords
+  const coords = payload.coordinates;
+  const lat = payload.lat ?? coords?.lat;
+  const lng = payload.lng ?? coords?.lng;
+  if (lat !== undefined) formData.append("lat", String(lat));
+  if (lng !== undefined) formData.append("lng", String(lng));
+
+  if (payload.features) {
+    payload.features.forEach((f) => formData.append("features", f));
+  }
+
+  if (payload.files) {
+    payload.files.forEach((file) => formData.append("images", file));
+  }
+
+  const { data } = await api.post("/api/fincas", formData);
+  return normalizeProperty(data);
 };
 
 const updateProperty = async ({
@@ -120,78 +265,109 @@ const updateProperty = async ({
   id: string;
   payload: UpdatePropertyPayload;
 }): Promise<PropertyResponse> => {
-  // Si hay archivos, primero subimos solo las imágenes con FormData
+  const formData = new FormData();
+
+  if (payload.title !== undefined) formData.append("title", payload.title);
+  if (payload.description !== undefined)
+    formData.append("description", payload.description);
+  if (payload.location !== undefined)
+    formData.append("location", payload.location);
+  if (payload.capacity !== undefined)
+    formData.append("capacity", String(payload.capacity));
+  if (payload.code !== undefined) formData.append("code", payload.code);
+  if (payload.type !== undefined) formData.append("type", payload.type);
+  if (payload.category !== undefined)
+    formData.append("category", payload.category);
+
+  if (payload.catalogIds !== undefined) {
+    payload.catalogIds.forEach((id) => formData.append("catalogIds", id));
+  }
+
+  // Pricing Rules
+  if (payload.priceBase !== undefined)
+    formData.append("priceBase", String(payload.priceBase));
+  if (payload.priceBaja !== undefined)
+    formData.append("priceBaja", String(payload.priceBaja));
+  if (payload.priceMedia !== undefined)
+    formData.append("priceMedia", String(payload.priceMedia));
+  if (payload.priceAlta !== undefined)
+    formData.append("priceAlta", String(payload.priceAlta));
+
+  if (payload.pricing) {
+    formData.append("pricing", JSON.stringify(payload.pricing));
+  }
+
+  const coords = payload.coordinates;
+  const lat = payload.lat ?? coords?.lat;
+  const lng = payload.lng ?? coords?.lng;
+  if (lat !== undefined) formData.append("lat", String(lat));
+  if (lng !== undefined) formData.append("lng", String(lng));
+
+  if (payload.features) {
+    payload.features.forEach((f) => formData.append("features", f));
+  }
+
   if (payload.files && payload.files.length > 0) {
-    const formData = new FormData();
-
-    // Solo agregar archivos de imagen (como en Postman)
-    payload.files.forEach((file) => {
-      formData.append("images", file);
-    });
-
-    // No establecer Content-Type manualmente — el navegador lo hace automáticamente
-    // incluyendo el boundary necesario para multipart/form-data
-    await api.patch(`/properties/${id}`, formData);
+    payload.files.forEach((file) => formData.append("images", file));
   }
 
-  // Si hay un archivo de video, lo subimos
-  if (payload.videoFile) {
-    const formData = new FormData();
-    formData.append("video", payload.videoFile);
-    await api.patch(`/properties/${id}`, formData);
-  }
+  const { data } = await api.put(`/api/fincas/${id}`, formData);
+  return normalizeProperty(data);
+};
 
-  // Enviar los demás campos como JSON (sin los files ni videoFile)
-  const { files, videoFile, ...jsonPayload } = payload;
-
-  // Solo enviar si hay campos para actualizar además de las imágenes
-  const hasOtherFields = Object.keys(jsonPayload).length > 0;
-  if (hasOtherFields) {
-    const { data } = await api.patch(`/properties/${id}`, jsonPayload);
-    return data;
-  }
-
-  // Si solo se subieron archivos, obtener la data actualizada
-  const { data } = await api.get(`/properties/${id}`);
-  return data;
+const addPropertyImage = async ({
+  id,
+  file,
+}: {
+  id: string;
+  file: File;
+}): Promise<PropertyResponse> => {
+  const formData = new FormData();
+  formData.append("image", file);
+  const { data } = await api.post(`/api/fincas/${id}/images`, formData);
+  return normalizeProperty(data);
 };
 
 const deletePropertyImage = async ({
-  id,
-  imageUrl,
+  imageId,
 }: {
-  id: string;
-  imageUrl: string;
+  imageId: string;
 }): Promise<void> => {
-  await api.delete(`/properties/${id}/images`, {
-    data: { imageUrl },
-  });
+  await api.delete(`/api/fincas/images/${imageId}`);
 };
 
-const deletePropertyVideo = async ({
+const uploadPropertyVideo = async ({
   id,
-  videoUrl,
+  videoFile,
 }: {
   id: string;
-  videoUrl: string;
-}): Promise<void> => {
-  await api.delete(`/properties/${id}/video`, {
-    data: { imageUrl: videoUrl },
-  });
+  videoFile: File;
+}): Promise<PropertyResponse> => {
+  const formData = new FormData();
+  formData.append("video", videoFile);
+  const { data } = await api.post(`/api/fincas/${id}/video`, formData);
+  return normalizeProperty(data);
+};
+
+const deletePropertyVideo = async ({ id }: { id: string }): Promise<void> => {
+  await api.delete(`/api/fincas/${id}/video`);
+};
+
+const deleteProperty = async (id: string): Promise<void> => {
+  await api.delete(`/api/fincas/${id}`);
 };
 
 // ---------- Hooks ----------
 
-/** Obtener todas las propiedades paginadas */
+/** Retorna la lista de propiedades. `data.properties` contiene el array (o `data.data` por compat). */
 export function useProperties(params: PropertiesParams = {}) {
   return useQuery({
-    queryKey: [queryKeys.properties.all, params],
+    queryKey: [...queryKeys.properties.all, params],
     queryFn: () => fetchProperties(params),
     placeholderData: (previousData) => previousData,
   });
 }
 
-/** Obtener una propiedad por ID */
 export function useProperty(id: string) {
   return useQuery({
     queryKey: queryKeys.properties.detail(id),
@@ -200,10 +376,15 @@ export function useProperty(id: string) {
   });
 }
 
-/** Mutation para crear una propiedad */
+export function useCatalogs() {
+  return useQuery({
+    queryKey: ["catalogs"],
+    queryFn: fetchCatalogs,
+  });
+}
+
 export function useCreateProperty() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: createProperty,
     onSuccess: () => {
@@ -212,14 +393,11 @@ export function useCreateProperty() {
   });
 }
 
-/** Mutation para actualizar una propiedad */
 export function useUpdateProperty() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: updateProperty,
     onSuccess: (_data, variables) => {
-      // Invalidar la lista y el detalle
       queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.properties.detail(variables.id),
@@ -228,14 +406,34 @@ export function useUpdateProperty() {
   });
 }
 
-/** Mutation para eliminar una imagen de una propiedad */
+export function useAddPropertyImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: addPropertyImage,
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.properties.detail(variables.id),
+      });
+    },
+  });
+}
+
 export function useDeletePropertyImage() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: deletePropertyImage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
+    },
+  });
+}
+
+export function useUploadPropertyVideo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: uploadPropertyVideo,
     onSuccess: (_data, variables) => {
-      // Invalidate both the list and the specific detail to keep home tabs synced
       queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.properties.detail(variables.id),
@@ -243,10 +441,9 @@ export function useDeletePropertyImage() {
     },
   });
 }
-/** Mutation para eliminar un video de una propiedad */
+
 export function useDeletePropertyVideo() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: deletePropertyVideo,
     onSuccess: (_data, variables) => {
@@ -254,6 +451,16 @@ export function useDeletePropertyVideo() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.properties.detail(variables.id),
       });
+    },
+  });
+}
+
+export function useDeleteProperty() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteProperty,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
     },
   });
 }
