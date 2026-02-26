@@ -1,3 +1,11 @@
+export interface PricingRule {
+  nombre: string;
+  fechaDesde: string;
+  fechaHasta: string;
+  valorUnico: number;
+  activa: boolean;
+}
+
 export interface Finca {
   id: string;
   title: string;
@@ -21,7 +29,8 @@ export interface Finca {
     baja: number;
     media: number;
     alta: number;
-    especiales: number | null;
+    especiales?: number | null;
+    rules?: PricingRule[];
   };
 }
 
@@ -31,7 +40,8 @@ export type FincaConTemporadas = Finca & {
     baja: number;
     media: number;
     alta: number;
-    especiales: number | null;
+    especiales?: number | null;
+    rules?: PricingRule[];
   };
   /** Texto original del Excel (por si necesitas mostrar rangos tipo "1-16 personas", etc.) */
   seasonPricesRaw: {

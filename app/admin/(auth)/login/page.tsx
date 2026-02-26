@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
 
 export default function LoginPage() {
@@ -43,7 +44,9 @@ export default function LoginPage() {
 
       {/* Content wrapper for better centering and responsiveness */}
       <div className="w-full max-w-md z-10">
-        <LoginForm />
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
 
         {/* Footer links or additional info */}
         <div className="mt-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both">
