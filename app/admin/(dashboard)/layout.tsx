@@ -3,7 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, ChevronLeft, LogOut } from "lucide-react";
+import {
+  Building2,
+  ChevronLeft,
+  LogOut,
+  Brain,
+  MessageSquare,
+} from "lucide-react";
 import { useEffect } from "react";
 import { sileo } from "sileo";
 import {
@@ -30,6 +36,16 @@ const navItems = [
     label: "Propiedades",
     href: "/admin/properties",
     icon: Building2,
+  },
+  {
+    label: "Base de Conocimiento",
+    href: "/admin/knowledge",
+    icon: Brain,
+  },
+  {
+    label: "Conversaciones",
+    href: "/admin/conversations",
+    icon: MessageSquare,
   },
 ];
 
@@ -188,6 +204,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { user } = useAuthStore();
+  const pathname = usePathname();
 
   const initials = user?.name
     ? user.name
@@ -208,33 +225,35 @@ export default function AdminLayout({
           <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-orange-100/20 rounded-full blur-[100px]" />
         </div>
 
-        <header className="flex h-14 md:h-16 shrink-0 items-center justify-between gap-2 border-b border-gray-100 bg-white/40 backdrop-blur-md px-4 md:px-6 sticky top-0 z-10">
-          <div className="flex items-center gap-3 md:gap-4">
-            <SidebarTrigger className="-ml-1 text-gray-400 hover:text-gray-900 transition-colors" />
-            <div className="h-4 w-px bg-gray-100" />
-            <div className="flex flex-col">
-              <span className="text-sm md:text-base font-bold text-gray-900 tracking-tight whitespace-nowrap">
-                Panel Admin
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {user && (
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-xs font-semibold text-gray-700 leading-none">
-                  {user.name || "Administrador"}
-                </span>
-                <span className="text-[10px] text-gray-400 leading-none mt-0.5">
-                  {user.email}
+        {!pathname.startsWith("/admin/conversations") && (
+          <header className="flex h-14 md:h-[60.4px] shrink-0 items-center justify-between gap-2 border-b border-gray-100 bg-white/40 backdrop-blur-md px-4 md:px-6 sticky top-0 z-10">
+            <div className="flex items-center gap-3 md:gap-4">
+              <SidebarTrigger className="-ml-1 text-gray-400 hover:text-gray-900 transition-colors" />
+              <div className="h-4 w-px bg-gray-100" />
+              <div className="flex flex-col">
+                <span className="text-sm md:text-base font-bold text-gray-900 tracking-tight whitespace-nowrap">
+                  Panel Admin
                 </span>
               </div>
-            )}
-            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-orange-50 border border-orange-100 flex items-center justify-center text-[9px] md:text-[10px] font-bold text-orange-500 uppercase shadow-sm">
-              {initials}
             </div>
-          </div>
-        </header>
+
+            <div className="flex items-center gap-3">
+              {user && (
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-xs font-semibold text-gray-700 leading-none">
+                    {user.name || "Administrador"}
+                  </span>
+                  <span className="text-[10px] text-gray-400 leading-none mt-0.5">
+                    {user.email}
+                  </span>
+                </div>
+              )}
+              <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-orange-50 border border-orange-100 flex items-center justify-center text-[9px] md:text-[10px] font-bold text-orange-500 uppercase shadow-sm">
+                {initials}
+              </div>
+            </div>
+          </header>
+        )}
         <div className="flex-1 bg-transparent relative z-0">{children}</div>
       </SidebarInset>
     </SidebarProvider>

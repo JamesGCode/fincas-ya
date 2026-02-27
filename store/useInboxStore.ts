@@ -1,0 +1,35 @@
+import { create } from "zustand";
+
+interface InboxFilters {
+  status?: "human" | "ai" | "resolved" | "all";
+  priority?: "urgent" | "high" | "medium" | "low" | "all";
+}
+
+interface InboxState {
+  selectedConversationId: string | null;
+  filters: InboxFilters;
+  // Actions
+  setSelectedConversationId: (id: string | null) => void;
+  setFilters: (filters: Partial<InboxFilters>) => void;
+  resetFilters: () => void;
+}
+
+export const useInboxStore = create<InboxState>((set) => ({
+  selectedConversationId: null,
+  filters: {
+    status: "all",
+    priority: "all",
+  },
+  setSelectedConversationId: (id) => set({ selectedConversationId: id }),
+  setFilters: (newFilters) =>
+    set((state) => ({
+      filters: { ...state.filters, ...newFilters },
+    })),
+  resetFilters: () =>
+    set({
+      filters: {
+        status: "all",
+        priority: "all",
+      },
+    }),
+}));
