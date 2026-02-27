@@ -12,6 +12,10 @@ import {
   CheckIcon,
   ArrowRightIcon,
   Bot,
+  ImageIcon,
+  Mic,
+  FileIcon,
+  Video,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -33,6 +37,89 @@ import { inboxService } from "@/services/inbox.service";
 import { useInboxStore } from "@/store/useInboxStore";
 import { Conversation } from "@/types/inbox";
 import { SkeletonConversations } from "../skeletons/skeleton-conversations";
+
+function LastMessagePreview({
+  conversationId,
+  propertyTitle,
+  fallbackPreview,
+}: {
+  conversationId: string;
+  propertyTitle?: string;
+  fallbackPreview?: string;
+}) {
+  const { data: messages, isLoading } = useQuery<any[]>({
+    queryKey: ["last-message", conversationId],
+    queryFn: () => inboxService.getMessages(conversationId, { limit: 1 }),
+    refetchInterval: 15000,
+  });
+
+  const lastMessage =
+    messages && messages.length > 0 ? messages[messages.length - 1] : null;
+
+  const isContact = lastMessage
+    ? typeof lastMessage.sender === "string"
+      ? lastMessage.sender === "user"
+      : lastMessage.sender?.role === "user"
+    : false;
+
+  const isFromOperator = lastMessage ? !isContact : false;
+
+  const renderPreview = () => {
+    if (isLoading && !lastMessage) {
+      return fallbackPreview || "...";
+    }
+
+    if (!lastMessage) {
+      return fallbackPreview || "Sin mensajes";
+    }
+
+    const textOutput = lastMessage.text || lastMessage.content || "";
+
+    let icon = null;
+    let typeLabel = "Adjunto";
+    switch (lastMessage.type) {
+      case "image":
+        icon = <ImageIcon className="h-3 w-3 shrink-0" />;
+        typeLabel = "Imagen";
+        break;
+      case "audio":
+        icon = <Mic className="h-3 w-3 shrink-0" />;
+        typeLabel = "Audio";
+        break;
+      case "document":
+        icon = <FileIcon className="h-3 w-3 shrink-0" />;
+        typeLabel = "Documento";
+        break;
+      case "video":
+        icon = <Video className="h-3 w-3 shrink-0" />;
+        typeLabel = "Video";
+        break;
+    }
+
+    if (icon || textOutput) {
+      return (
+        <span className="inline-flex items-center gap-1 truncate">
+          {icon}
+          <span className="truncate">{textOutput || typeLabel}</span>
+        </span>
+      );
+    }
+
+    return `[${lastMessage.type || typeLabel}]`;
+  };
+
+  return (
+    <div className="flex w-0 grow items-center gap-1">
+      {isFromOperator && (
+        <CornerUpLeftIcon className="size-3 shrink-0 text-muted-foreground" />
+      )}
+      <span className="line-clamp-1 border-r border-border/30 pr-2">
+        {propertyTitle ? `[${propertyTitle}] ` : ""}
+        {renderPreview()}
+      </span>
+    </div>
+  );
+}
 
 export function ConversationsPanel() {
   const {
@@ -90,7 +177,7 @@ export function ConversationsPanel() {
               "flex items-center justify-center rounded-full p-1.5 bg-destructive",
             )}
           >
-            <ArrowRightIcon className="size-3 stroke-3 text-white" />
+            <CircleIcon className="size-3 stroke-3 text-white" />
           </div>
         );
       default:
@@ -109,7 +196,7 @@ export function ConversationsPanel() {
   return (
     <div className="flex h-full flex-col bg-white border-r">
       <div className="p-4 border-b">
-        <h2 className="text-xl font-semibold mb-4">Inbox</h2>
+        {/* <h2 className="text-xl font-semibold mb-4">Inbox</h2> */}
         <Tabs
           value={filters.status}
           className="w-full mb-3"
@@ -147,10 +234,30 @@ export function ConversationsPanel() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="urgent">Urgentes</SelectItem>
-              <SelectItem value="high">Altas</SelectItem>
-              <SelectItem value="medium">Medias</SelectItem>
-              <SelectItem value="low">Bajas</SelectItem>
+              <SelectItem value="urgent">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-red-500" />
+                  Urgentes
+                </div>
+              </SelectItem>
+              <SelectItem value="high">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-orange-500" />
+                  Altas
+                </div>
+              </SelectItem>
+              <SelectItem value="medium">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-yellow-500" />
+                  Medias
+                </div>
+              </SelectItem>
+              <SelectItem value="low">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-blue-500" />
+                  Bajas
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -170,14 +277,9 @@ export function ConversationsPanel() {
         ) : (
           <div className="flex flex-col">
             {filteredConversations.map((conversation: any) => {
-              // Asumiendo un campo lastMessageRole si backend lo envía, sino se deduce unreadCount
-              const isLastMessageFromOperator =
-                conversation.lastMessageRole !== "user" &&
-                conversation.unreadCount === 0;
-
               return (
                 <Link
-                  href={`?id=${conversation._id}`}
+                  href={`/admin/conversations/${conversation._id}`}
                   scroll={false}
                   key={conversation._id}
                   onClick={() => setSelectedConversationId(conversation._id)}
@@ -197,6 +299,7 @@ export function ConversationsPanel() {
                   <DicebearAvatar
                     seed={conversation.contact.name}
                     unreadCount={conversation.unreadCount}
+                    priority={conversation.priority}
                   />
 
                   <div className="flex flex-col flex-1 min-w-0 pr-1">
@@ -221,21 +324,11 @@ export function ConversationsPanel() {
                     </div>
 
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <div className="flex w-0 grow items-center gap-1">
-                        {isLastMessageFromOperator && (
-                          <CornerUpLeftIcon className="size-3 shrink-0 text-muted-foreground" />
-                        )}
-                        <span
-                          className={cn(
-                            "line-clamp-1 border-r border-border/30 pr-2",
-                          )}
-                        >
-                          {conversation.propertyTitle
-                            ? `[${conversation.propertyTitle}] `
-                            : ""}
-                          {conversation.lastMessagePreview || "Sin mensajes"}
-                        </span>
-                      </div>
+                      <LastMessagePreview
+                        conversationId={conversation._id}
+                        propertyTitle={conversation.propertyTitle}
+                        fallbackPreview={conversation.lastMessagePreview}
+                      />
 
                       {/* Círculo de Status */}
                       <StatusIcon status={conversation.status} />

@@ -51,6 +51,13 @@ export const inboxService = {
   },
 
   /**
+   * Marca los mensajes de una conversación como leídos
+   */
+  async markMessagesAsRead(conversationId: string): Promise<void> {
+    await api.patch(`/${conversationId}/read`);
+  },
+
+  /**
    * Actualiza la prioridad de una conversación (urgent, high, medium, low)
    */
   async updatePriority(

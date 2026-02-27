@@ -13,6 +13,7 @@ interface DicebearAvatarProps {
   badgeClassName?: string;
   imageUrl?: string;
   unreadCount?: number;
+  priority?: "urgent" | "high" | "medium" | "low";
 }
 
 const getInitials = (name: string) => {
@@ -25,6 +26,14 @@ const getInitials = (name: string) => {
     .slice(0, 2);
 };
 
+// Priority Colors definition
+const priorityColors = {
+  urgent: "bg-red-500",
+  high: "bg-orange-500",
+  medium: "bg-yellow-500",
+  low: "bg-blue-500",
+};
+
 export function DicebearAvatar({
   seed,
   size = 44,
@@ -32,6 +41,7 @@ export function DicebearAvatar({
   badgeClassName,
   imageUrl,
   unreadCount,
+  priority,
 }: DicebearAvatarProps) {
   const avatarSrc = useMemo(() => {
     if (imageUrl) {
@@ -63,9 +73,20 @@ export function DicebearAvatar({
       </Avatar>
 
       {Boolean(unreadCount && unreadCount > 0) && (
-        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
+        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-background z-10">
           {unreadCount}
         </span>
+      )}
+
+      {/* Priority Flag */}
+      {priority && priorityColors[priority] && (
+        <span
+          className={cn(
+            "absolute -bottom-0.5 -right-0.5 flex h-3 w-3 items-center justify-center rounded-full shadow-sm ring-2 ring-background z-10",
+            priorityColors[priority],
+          )}
+          title={`Prioridad: ${priority}`}
+        />
       )}
     </div>
   );
