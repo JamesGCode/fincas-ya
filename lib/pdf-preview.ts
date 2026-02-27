@@ -4,13 +4,20 @@ import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 // We use unpkg as a reliable CDN for the worker
 GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
+export interface PdfPreviewResult {
+  thumbnail: string;
+  pageCount: number;
+}
+
 /**
- * Generates a base64 image preview from the first page of a PDF File.
+ * Generates a base64 image preview and page count from a PDF File.
  *
  * @param file The PDF File object
- * @returns A promise that resolves to a base64 data URL of the rendered image.
+ * @returns A promise that resolves to an object with thumbnail and page count.
  */
-export async function generatePdfPreview(file: File): Promise<string> {
+export async function generatePdfPreview(
+  file: File,
+): Promise<PdfPreviewResult> {
   if (file.type !== "application/pdf") {
     throw new Error("File is not a PDF");
   }
@@ -21,6 +28,7 @@ export async function generatePdfPreview(file: File): Promise<string> {
   try {
     const loadingTask = getDocument(fileUrl);
     const pdf = await loadingTask.promise;
+    const pageCount = pdf.numPages;
 
     // Get the first page
     const page = await pdf.getPage(1);
@@ -50,7 +58,7 @@ export async function generatePdfPreview(file: File): Promise<string> {
     // Convert canvas to base64 image
     const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
 
-    return dataUrl;
+    return { thumbnail: dataUrl, pageCount };
   } finally {
     // Always cleanup the object URL
     URL.revokeObjectURL(fileUrl);
@@ -58,25 +66,24 @@ export async function generatePdfPreview(file: File): Promise<string> {
 }
 
 /**
- * Generates a base64 image preview from a PDF URL.
+ * Generates a base64 image preview and page count from a PDF URL.
  *
  * @param url The PDF URL string
- * @returns A promise that resolves to a base64 data URL of the rendered image.
+ * @returns A promise that resolves to an object with thumbnail and page count.
  */
-export async function generatePdfPreviewFromUrl(url: string): Promise<string> {
+export async function generatePdfPreviewFromUrl(
+  url: string,
+): Promise<PdfPreviewResult> {
   try {
     // Determine if we need to proxy the request to bypass CORS
-    // If it's a full URL (like S3), we proxy it through a simple absolute path or api route
-    // Alternatively, pdf.js can handle it if we set withCredentials false or bypass
     let fetchUrl = url;
     if (url.startsWith("http")) {
-      // By using our own backend or next.js api proxy, we avoid CORS issues.
-      // Easiest client-side fix for S3 CORS is to proxy it if S3 CORS isn't configured.
       fetchUrl = `/api/cors-proxy?url=${encodeURIComponent(url)}`;
     }
 
     const loadingTask = getDocument(fetchUrl);
     const pdf = await loadingTask.promise;
+    const pageCount = pdf.numPages;
 
     // Get the first page
     const page = await pdf.getPage(1);
@@ -104,7 +111,9 @@ export async function generatePdfPreviewFromUrl(url: string): Promise<string> {
     await page.render(renderContext).promise;
 
     // Convert to base64
-    return canvas.toDataURL("image/jpeg", 0.8);
+    const thumbnail = canvas.toDataURL("image/jpeg", 0.8);
+
+    return { thumbnail, pageCount };
   } catch (error) {
     console.error("Error generating PDF preview from URL:", url, error);
     throw error;

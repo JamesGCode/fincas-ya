@@ -2,19 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_URL = "https://app.fincasya.cloud";
 
-/**
- * Proxies all /api/inbox/* requests to the backend.
- * This ensures the frontend's session_token is correctly sent to our backend
- * to authenticate requests like getting conversations and sending messages.
- */
-async function handler(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> },
-) {
-  const resolvedParams = await params;
-  const path = resolvedParams.path;
-  const backendPath = `/api/inbox/${path.join("/")}`;
-  const backendUrl = new URL(backendPath, BACKEND_URL);
+async function handler(request: NextRequest) {
+  const backendUrl = new URL("/api/fincas", BACKEND_URL);
 
   // Forward query params
   request.nextUrl.searchParams.forEach((value, key) => {
@@ -46,11 +35,7 @@ async function handler(
       const body = await request.json();
       fetchOptions.body = JSON.stringify(body);
     } else if (contentType.includes("multipart/form-data")) {
-      // Forward the raw body to preserve the precise File types / MIME types
-      // from the client instead of parsing through request.formData() which
-      // might drop them.
       fetchOptions.body = await request.arrayBuffer();
-      // Keep Content-Type as is so the backend knows the boundary
       headers.set("Content-Type", contentType);
     } else {
       fetchOptions.body = await request.arrayBuffer();
@@ -82,6 +67,3 @@ async function handler(
 
 export const GET = handler;
 export const POST = handler;
-export const PUT = handler;
-export const DELETE = handler;
-export const PATCH = handler;

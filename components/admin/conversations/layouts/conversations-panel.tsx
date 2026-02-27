@@ -263,7 +263,7 @@ export function ConversationsPanel() {
         </div>
       </div>
 
-      <ScrollArea className="max-h-[calc(100vh-181.2px)]">
+      <ScrollArea className="max-h-[calc(100vh-128.8px)]">
         {isLoading ? (
           <SkeletonConversations />
         ) : error ? (

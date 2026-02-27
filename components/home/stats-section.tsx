@@ -6,7 +6,7 @@ export function StatsSection() {
     {
       id: 1,
       label: "Fincas verificadas",
-      value: "+388",
+      value: "+600",
       sub: "Revisadas personalmente",
     },
     {
@@ -19,8 +19,14 @@ export function StatsSection() {
     {
       id: 3,
       label: "Huéspedes felices",
-      value: "+10K",
+      value: "+40K",
       sub: "En el último año",
+    },
+    {
+      id: 4,
+      label: "Seguidores totales",
+      value: "+300K",
+      sub: "Nos respaldan",
     },
   ];
 

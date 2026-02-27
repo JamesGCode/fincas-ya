@@ -1,7 +1,11 @@
 import axios from "axios";
 
+const isServer = typeof window === "undefined";
+
 const api = axios.create({
-  baseURL: "https://app.fincasya.cloud",
+  baseURL: isServer
+    ? process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+    : "", // Use absolute URL on the server
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",

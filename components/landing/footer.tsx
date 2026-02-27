@@ -191,17 +191,22 @@ export function Footer() {
                 className="object-contain"
               />
             </div>
-            <div className="relative h-10 w-28 brightness-0 invert transition-all duration-500 opacity-60 hover:opacity-100 bg-white/10 rounded-lg px-2">
+          </div>
+        </div>
+        <div className="border-t border-white/5 pt-8 flex flex-col items-center gap-6">
+          <div className="flex flex-col items-center gap-3 transition-opacity duration-300 opacity-60 hover:opacity-100">
+            <div className="relative h-12 w-32 brightness-0 invert">
               <Image
-                src="/SIC.png"
+                src="/superintendencia.png"
                 alt="Superintendencia de Industria y Comercio"
                 fill
                 className="object-contain"
               />
             </div>
+            <span className="text-[10px] md:text-sm -mt-2 text-white/70 text-center max-w-[400px] leading-tight">
+              Empresa vigilada por la Superintendencia de Industria y Comercio.
+            </span>
           </div>
-        </div>
-        <div className=" border-white/5 flex flex-col items-center gap-6">
           <div className="flex flex-col md:flex-row justify-center items-center gap-4 text-xs text-muted-foreground">
             <p>
               © {new Date().getFullYear()} FincasYa. Todos los derechos

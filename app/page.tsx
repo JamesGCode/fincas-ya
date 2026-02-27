@@ -259,10 +259,7 @@ export default function Home() {
           </div>
 
           <SocialSection />
-          {/* <InstagramFeed />  */}
-          {/* <HowItWorks /> */}
           <TestimonialsSection />
-          {/* <PressSection /> */}
           <CtaSection />
           <Footer />
         </>

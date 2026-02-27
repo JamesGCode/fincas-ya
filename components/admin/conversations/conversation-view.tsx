@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 import { AudioRecorder } from "./audio-recorder";
+import { CustomAudioPlayer } from "./custom-audio-player";
 import { ImagePreviewModal } from "./image-preview-modal";
 import { DocumentPreviewModal } from "./document-preview-modal";
 import { ImageViewerModal, ChatImageItem } from "./image-viewer-modal";
@@ -91,6 +92,9 @@ export function ConversationView() {
   const [pdfThumbnails, setPdfThumbnails] = useState<Record<string, string>>(
     {},
   );
+  const [pdfPageCounts, setPdfPageCounts] = useState<Record<string, number>>(
+    {},
+  );
   const [fileSizes, setFileSizes] = useState<Record<string, number>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -126,17 +130,33 @@ export function ConversationView() {
   useEffect(() => {
     messages.forEach((msg: any) => {
       if (msg.type === "document" && msg.mediaUrl) {
-        const originalName = msg.fileName || msg.name || msg.mediaUrl;
-        const fileExt = originalName.includes(".")
-          ? originalName.split(".").pop()?.toUpperCase()
+        let extSource =
+          msg.fileName ||
+          msg.name ||
+          (msg.mediaUrl.includes("?")
+            ? msg.mediaUrl.split("/").pop()?.split("?")[0]
+            : msg.mediaUrl.split("/").pop()) ||
+          "Documento";
+
+        const textContent = msg.content || msg.text || "";
+        if (!extSource.includes(".") && textContent.includes(".")) {
+          extSource = textContent;
+        }
+
+        const fileExt = extSource.includes(".")
+          ? extSource.split(".").pop()?.toUpperCase()
           : "";
 
         if (fileExt === "PDF" && !pdfThumbnails[msg.mediaUrl]) {
           generatePdfPreviewFromUrl(msg.mediaUrl)
-            .then((dataUrl) => {
+            .then((result) => {
               setPdfThumbnails((prev) => ({
                 ...prev,
-                [msg.mediaUrl]: dataUrl,
+                [msg.mediaUrl]: result.thumbnail,
+              }));
+              setPdfPageCounts((prev) => ({
+                ...prev,
+                [msg.mediaUrl]: result.pageCount,
               }));
             })
             .catch((err) => {
@@ -263,8 +283,28 @@ export function ConversationView() {
   };
 
   const handleSendAudio = (audioBlob: Blob) => {
-    const file = new File([audioBlob], "audio_message.webm", {
-      type: "audio/webm",
+    let type = audioBlob.type || "audio/ogg";
+    let ext = "ogg";
+
+    // Standardize extensions and types for WhatsApp/yCloud compatibility
+    if (type.includes("ogg")) {
+      ext = "ogg";
+      type = "audio/ogg"; // Bare type for WhatsApp
+    } else if (type.includes("mp4") || type.includes("aac")) {
+      ext = "m4a";
+      type = "audio/aac"; // WhatsApp likes audio/aac for m4a files
+    } else if (type.includes("mpeg")) {
+      ext = "mp3";
+      type = "audio/mpeg";
+    } else if (type.includes("webm")) {
+      ext = "webm";
+      // In some cases, we might want to convert webm to ogg or something else,
+      // but for now we keep it honest. If yCloud still fails webm, we'll know.
+      type = "audio/webm";
+    }
+
+    const file = new File([audioBlob], `recording.${ext}`, {
+      type: type,
     });
     sendMutation.mutate({ file, type: "audio" });
   };
@@ -311,7 +351,7 @@ export function ConversationView() {
           </div>
         </header>
 
-        <AIConversation className="max-h-[calc(100vh-180px)]">
+        <AIConversation className="max-h-[calc(100vh-139.95px)]">
           <AIConversationContent>
             {Array.from({ length: 8 }, (_, index) => {
               const isUser = index % 2 === 0;
@@ -344,10 +384,6 @@ export function ConversationView() {
               placeholder="Escribe tu mensaje como un operador..."
             />
             <div className="flex items-center gap-1 shrink-0 pb-1.5 pr-2">
-              <AIInputButton disabled onClick={() => {}} className="h-9 px-3">
-                <Wand2Icon className="h-4 w-4 mr-1.5" />
-                Mejorar
-              </AIInputButton>
               <AIInputSubmit
                 disabled
                 onClick={() => {}}
@@ -482,6 +518,23 @@ export function ConversationView() {
               const isSystem =
                 msg.sender === "system" || msg.sender?.role === "system";
 
+              let extSource = "";
+              if (msg.type === "document" && msg.mediaUrl) {
+                const originalName =
+                  msg.fileName ||
+                  msg.name ||
+                  (msg.mediaUrl.includes("?")
+                    ? msg.mediaUrl.split("/").pop()?.split("?")[0]
+                    : msg.mediaUrl.split("/").pop()) ||
+                  "Documento";
+
+                const textContent = msg.content || msg.text || "";
+                extSource = originalName;
+                if (!extSource.includes(".") && textContent.includes(".")) {
+                  extSource = textContent;
+                }
+              }
+
               return (
                 <AIMessage
                   key={msg._id}
@@ -490,9 +543,11 @@ export function ConversationView() {
                 >
                   <AIMessageContent
                     className={cn(
-                      isContact
-                        ? "bg-background text-foreground"
-                        : "bg-[#dcedff] dark:bg-[#dcedff]/10 text-foreground",
+                      msg.type === "document"
+                        ? "bg-[#0b63f3] text-white border-transparent"
+                        : isContact
+                          ? "bg-background text-foreground"
+                          : "bg-[#dcedff] dark:bg-[#dcedff]/10 text-foreground",
                     )}
                   >
                     {/* System Tag */}
@@ -528,11 +583,17 @@ export function ConversationView() {
 
                     {/* Render Audio */}
                     {msg.type === "audio" && msg.mediaUrl && (
-                      <div className="mb-2">
-                        <audio controls className="h-10 w-[240px] max-w-full">
-                          <source src={msg.mediaUrl} />
-                          Tu navegador no soporta el audio.
-                        </audio>
+                      <div className="mb-1 -ml-1">
+                        <CustomAudioPlayer
+                          src={msg.mediaUrl}
+                          isContact={isContact}
+                          avatarSeed={
+                            isContact
+                              ? (conversation?.contact?.name ?? "user")
+                              : "Agente"
+                          }
+                          timestamp={formattedTime}
+                        />
                       </div>
                     )}
 
@@ -540,16 +601,9 @@ export function ConversationView() {
                     {msg.type === "document" &&
                       msg.mediaUrl &&
                       (() => {
-                        const originalName =
-                          msg.fileName ||
-                          msg.name ||
-                          (msg.mediaUrl.includes("?")
-                            ? msg.mediaUrl.split("/").pop()?.split("?")[0]
-                            : msg.mediaUrl.split("/").pop()) ||
-                          "Documento";
-                        const iconUrl = getDocumentIcon(originalName);
-                        const fileExt = originalName.includes(".")
-                          ? originalName.split(".").pop()?.toUpperCase()
+                        const iconUrl = getDocumentIcon(extSource);
+                        const fileExt = extSource.includes(".")
+                          ? extSource.split(".").pop()?.toUpperCase()
                           : "DOC";
 
                         const sizeBytes = fileSizes[msg.mediaUrl];
@@ -561,8 +615,8 @@ export function ConversationView() {
                             formattedSize = `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
                         }
 
-                        // Simulating page count text since we don't store it yet
-                        const fileSizeText = `1 Pág • PDF • ${formattedSize}`;
+                        const pageCount = pdfPageCounts[msg.mediaUrl] || 1;
+                        const fileSizeText = `${pageCount} ${pageCount === 1 ? "Pág" : "Págs"} • PDF • ${formattedSize}`;
 
                         const isPdf = fileExt === "PDF";
 
@@ -585,7 +639,7 @@ export function ConversationView() {
                                 ) : (
                                   <>
                                     <span className="text-[10px] text-muted-foreground/50 font-medium absolute top-4 left-6">
-                                      {originalName}
+                                      {extSource}
                                     </span>
                                   </>
                                 )}
@@ -608,7 +662,7 @@ export function ConversationView() {
                               </div>
                               <div className="flex flex-col min-w-0 flex-1">
                                 <span className="truncate font-semibold text-[15px] text-neutral-900 dark:text-neutral-100 leading-tight">
-                                  {originalName}
+                                  {extSource}
                                 </span>
                                 <span className="text-[12px] font-medium text-neutral-600 dark:text-neutral-400 mt-0.5">
                                   {isPdf
@@ -622,11 +676,18 @@ export function ConversationView() {
                       })()}
 
                     {/* Text Content */}
-                    {msg.content && (
+                    {msg.content && msg.type !== "document" && (
                       <AIResponse className="whitespace-pre-wrap">
                         {msg.content}
                       </AIResponse>
                     )}
+                    {msg.content &&
+                      msg.type === "document" &&
+                      msg.content !== extSource && (
+                        <AIResponse className="whitespace-pre-wrap">
+                          {msg.content}
+                        </AIResponse>
+                      )}
 
                     {msg.text && (
                       <AIResponse className="whitespace-pre-wrap">
@@ -634,7 +695,7 @@ export function ConversationView() {
                       </AIResponse>
                     )}
 
-                    {formattedTime && (
+                    {formattedTime && msg.type !== "audio" && (
                       <div
                         className={cn(
                           "flex mt-0.5",
@@ -644,7 +705,7 @@ export function ConversationView() {
                         <span
                           className={cn(
                             "text-[10px] font-medium leading-none",
-                            isContact
+                            isContact && msg.type !== "document"
                               ? "text-muted-foreground"
                               : "text-white/70 dark:text-blue-200/50",
                           )}

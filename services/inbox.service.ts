@@ -83,11 +83,7 @@ export const inboxService = {
       if (payload.text) formData.append("text", payload.text);
       formData.append("file", payload.file);
 
-      const { data } = await api.post(`/${conversationId}/send`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const { data } = await api.post(`/${conversationId}/send`, formData);
       return data;
     }
 

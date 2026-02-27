@@ -38,6 +38,9 @@ export function DocumentPreviewModal({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
   const [pdfPreviews, setPdfPreviews] = useState<Record<string, string>>({});
+  const [pdfPageCounts, setPdfPageCounts] = useState<Record<string, number>>(
+    {},
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -62,8 +65,15 @@ export function DocumentPreviewModal({
       newItems.forEach(async (item) => {
         if (item.file.type === "application/pdf") {
           try {
-            const dataUrl = await generatePdfPreview(item.file);
-            setPdfPreviews((prev) => ({ ...prev, [item.id]: dataUrl }));
+            const result = await generatePdfPreview(item.file);
+            setPdfPreviews((prev) => ({
+              ...prev,
+              [item.id]: result.thumbnail,
+            }));
+            setPdfPageCounts((prev) => ({
+              ...prev,
+              [item.id]: result.pageCount,
+            }));
           } catch (error) {
             console.error("Failed to generate PDF preview:", error);
           }
@@ -87,8 +97,15 @@ export function DocumentPreviewModal({
       newItems.forEach(async (item) => {
         if (item.file.type === "application/pdf") {
           try {
-            const dataUrl = await generatePdfPreview(item.file);
-            setPdfPreviews((prev) => ({ ...prev, [item.id]: dataUrl }));
+            const result = await generatePdfPreview(item.file);
+            setPdfPreviews((prev) => ({
+              ...prev,
+              [item.id]: result.thumbnail,
+            }));
+            setPdfPageCounts((prev) => ({
+              ...prev,
+              [item.id]: result.pageCount,
+            }));
           } catch (error) {
             console.error("Failed to generate PDF preview:", error);
           }
@@ -201,6 +218,10 @@ export function DocumentPreviewModal({
               {currentItem.file.name}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
+              {currentItem.file.type === "application/pdf" &&
+              pdfPageCounts[currentItem.id]
+                ? `${pdfPageCounts[currentItem.id]} ${pdfPageCounts[currentItem.id] === 1 ? "página" : "páginas"} • `
+                : ""}
               {formatFileSize(currentItem.file.size)}
             </p>
           </div>
