@@ -12,6 +12,11 @@ import {
   Paperclip,
   ImageIcon,
   Mic,
+  Search,
+  Users,
+  Building,
+  CheckCheck,
+  CircleArrowLeft,
   X,
   File as FileIcon,
 } from "lucide-react";
@@ -205,6 +210,9 @@ export function ConversationView() {
       queryClient.invalidateQueries({
         queryKey: ["messages", selectedConversationId],
       });
+      if (conversation?.status === "ai") {
+        statusMutation.mutate("human");
+      }
       setInputText("");
       setIsRecording(false);
     },
@@ -235,6 +243,9 @@ export function ConversationView() {
       queryClient.invalidateQueries({
         queryKey: ["messages", selectedConversationId],
       });
+      if (conversation?.status === "ai") {
+        statusMutation.mutate("human");
+      }
       setSelectedImages([]);
     },
   });
@@ -254,6 +265,9 @@ export function ConversationView() {
       queryClient.invalidateQueries({
         queryKey: ["messages", selectedConversationId],
       });
+      if (conversation?.status === "ai") {
+        statusMutation.mutate("human");
+      }
       setSelectedDocuments([]);
     },
   });
@@ -297,10 +311,12 @@ export function ConversationView() {
       ext = "mp3";
       type = "audio/mpeg";
     } else if (type.includes("webm")) {
-      ext = "webm";
-      // In some cases, we might want to convert webm to ogg or something else,
-      // but for now we keep it honest. If yCloud still fails webm, we'll know.
-      type = "audio/webm";
+      // WhatsApp and yCloud strictly prefer OGG/Opus for voice notes.
+      // Chrome records as audio/webm;codecs=opus.
+      // By changing the container extension to .ogg and type to audio/ogg,
+      // WhatsApp API generally accepts it seamlessly as an Opus voice note.
+      ext = "ogg";
+      type = "audio/ogg";
     }
 
     const file = new File([audioBlob], `recording.${ext}`, {
@@ -419,79 +435,129 @@ export function ConversationView() {
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="flex items-center space-x-2">
-            <BotIcon
-              className={cn(
-                "size-4",
-                isHumanEscalated ? "text-muted-foreground" : "text-primary",
-              )}
-            />
-            <Switch
-              checked={isHumanEscalated}
-              onCheckedChange={(checked) =>
-                statusMutation.mutate(checked ? "human" : "ai")
-              }
-              id="ai-mode"
-            />
-            <Label htmlFor="ai-mode" className="text-xs font-semibold">
-              Operador Manual
-            </Label>
-          </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 bg-muted/40 p-1.5 rounded-xl border border-border/50 shadow-sm">
+            {/* Operador Manual */}
+            <div className="flex items-center gap-2 px-2 py-0.5">
+              <BotIcon
+                className={cn(
+                  "size-4 shrink-0 transition-colors",
+                  isHumanEscalated ? "text-muted-foreground" : "text-blue-500",
+                )}
+              />
+              <Switch
+                checked={isHumanEscalated}
+                onCheckedChange={(checked) =>
+                  statusMutation.mutate(checked ? "human" : "ai")
+                }
+                id="ai-mode"
+                className="data-[state=unchecked]:bg-blue-500 shadow-sm"
+              />
+              <Label
+                htmlFor="ai-mode"
+                className="text-[13px] font-medium cursor-pointer select-none text-foreground/80"
+              >
+                Lidera: {isHumanEscalated ? "Tú" : "Bot"}
+              </Label>
+            </div>
 
-          <div className="flex items-center space-x-2">
-            <Switch
-              checked={isResolved}
-              onCheckedChange={(checked) =>
-                statusMutation.mutate(checked ? "resolved" : "human")
-              }
-              id="resolved-mode"
-              className="data-[state=checked]:bg-emerald-500"
-            />
-            <Label
-              htmlFor="resolved-mode"
-              className="text-xs font-semibold hidden sm:block"
-            >
-              Resuelto
-            </Label>
+            <div className="w-px h-5 bg-border/80 mx-1" />
+
+            {/* Resuelto */}
+            <div className="flex items-center gap-2 px-2 py-0.5">
+              <Switch
+                checked={isResolved}
+                onCheckedChange={(checked) =>
+                  statusMutation.mutate(checked ? "resolved" : "human")
+                }
+                id="resolved-mode"
+                className="data-[state=checked]:bg-emerald-500 shadow-sm"
+              />
+              <Label
+                htmlFor="resolved-mode"
+                className="text-[13px] font-medium cursor-pointer select-none text-foreground/80"
+              >
+                Resuelto
+              </Label>
+            </div>
           </div>
 
           <Select
-            value={conversation?.priority}
+            value={conversation?.priority || "all"}
             onValueChange={(val: any) => priorityMutation.mutate(val)}
           >
-            <SelectTrigger className="w-[105px] h-8 text-xs bg-muted/50 focus:ring-0">
-              <SelectValue placeholder="Prioridad" />
+            <SelectTrigger className="w-fit min-w-[130px] h-[36px] text-[14px] font-normal bg-white shadow-sm hover:bg-muted/30 transition-colors focus:ring-0 rounded-full px-3.5 flex justify-between items-center text-zinc-900 border-zinc-200">
+              <SelectValue placeholder="Prioridad">
+                <div className="flex items-center gap-2">
+                  {conversation?.priority === "urgent" && (
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#f43f5e] shrink-0" />
+                  )}
+                  {conversation?.priority === "high" && (
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#f97316] shrink-0" />
+                  )}
+                  {conversation?.priority === "medium" && (
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] shrink-0" />
+                  )}
+                  {conversation?.priority === "low" && (
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#3b82f6] shrink-0" />
+                  )}
+                  <span>
+                    {conversation?.priority === "urgent" && "Urgentes"}
+                    {conversation?.priority === "high" && "Altas"}
+                    {conversation?.priority === "medium" && "Medias"}
+                    {conversation?.priority === "low" && "Bajas"}
+                    {(!conversation?.priority ||
+                      (conversation.priority as string) === "all") &&
+                      "Todas"}
+                  </span>
+                </div>
+              </SelectValue>
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="urgent">Urgente</SelectItem>
-              <SelectItem value="high">Alta</SelectItem>
-              <SelectItem value="medium">Media</SelectItem>
-              <SelectItem value="low">Baja</SelectItem>
+            <SelectContent className="rounded-2xl min-w-[150px] p-2 bg-white shadow-lg border-zinc-200">
+              <SelectItem
+                value="all"
+                className="text-[14px] font-normal text-zinc-800 focus:bg-zinc-50 rounded-lg py-2.5 px-3 mb-1 cursor-pointer hide-default-check relative"
+              >
+                Todas
+              </SelectItem>
+              <SelectItem
+                value="urgent"
+                className="text-[14px] font-normal text-zinc-900 focus:bg-zinc-50 rounded-lg py-2.5 px-3 cursor-pointer relative hide-default-check"
+              >
+                <div className="flex items-center gap-3 w-full">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#f43f5e] shrink-0" />
+                  <span>Urgentes</span>
+                </div>
+              </SelectItem>
+              <SelectItem
+                value="high"
+                className="text-[14px] font-normal text-zinc-900 focus:bg-zinc-50 rounded-lg py-2.5 px-3 cursor-pointer relative hide-default-check"
+              >
+                <div className="flex items-center gap-3 w-full">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#f97316] shrink-0" />
+                  <span>Altas</span>
+                </div>
+              </SelectItem>
+              <SelectItem
+                value="medium"
+                className="text-[14px] font-normal text-zinc-900 focus:bg-zinc-50 rounded-lg py-2.5 px-3 cursor-pointer relative hide-default-check"
+              >
+                <div className="flex items-center gap-3 w-full">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] shrink-0" />
+                  <span>Medias</span>
+                </div>
+              </SelectItem>
+              <SelectItem
+                value="low"
+                className="text-[14px] font-normal text-zinc-900 focus:bg-zinc-50 rounded-lg py-2.5 px-3 cursor-pointer relative"
+              >
+                <div className="flex items-center gap-3 w-full">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#3b82f6] shrink-0" />
+                  <span>Bajas</span>
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:bg-muted"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                Ver cliente
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Phone className="mr-2 h-4 w-4" />
-                Llamar (+57)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
 
@@ -742,6 +808,7 @@ export function ConversationView() {
               <div className="flex items-end gap-2 p-1 border rounded-lg bg-background overflow-hidden relative focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                 <input
                   type="file"
+                  multiple
                   className="hidden"
                   ref={fileInputRef}
                   onChange={handleFileChange}
@@ -802,7 +869,7 @@ export function ConversationView() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                      className="h-9 w-9 text-primary hover:text-primary/80 hover:bg-primary/5 dark:hover:bg-primary/10"
                       onClick={() => setIsRecording(true)}
                       disabled={conversation?.status === "resolved"}
                       title="Enviar nota de voz"
@@ -818,7 +885,7 @@ export function ConversationView() {
                         sendMutation.isPending
                       }
                       onClick={handleSend}
-                      className="h-9 w-9 shrink-0 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700"
+                      className="h-9 w-9 shrink-0 text-white bg-primary hover:bg-primary/80 dark:bg-primary dark:hover:bg-primary/80"
                     />
                   )}
                 </div>

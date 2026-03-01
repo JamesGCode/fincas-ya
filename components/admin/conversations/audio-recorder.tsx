@@ -64,7 +64,6 @@ export function AudioRecorder({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          sampleRate: 44100,
         },
       });
       streamRef.current = stream;
@@ -81,11 +80,12 @@ export function AudioRecorder({
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
 
-      let selectedType = "audio/ogg; codecs=opus";
+      let selectedType = "";
       const possibleTypes = [
-        "audio/ogg; codecs=opus",
-        "audio/webm; codecs=opus",
+        "audio/webm;codecs=opus",
         "audio/webm",
+        "audio/ogg;codecs=opus",
+        "audio/ogg",
         "audio/mp4",
         "audio/aac",
       ];
@@ -97,8 +97,9 @@ export function AudioRecorder({
         }
       }
 
+      // We don't force audioBitsPerSecond here as it causes strict browsers to generate corrupted files
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: selectedType,
+        mimeType: selectedType || "audio/webm",
       });
 
       mediaRecorderRef.current = mediaRecorder;
@@ -112,7 +113,7 @@ export function AudioRecorder({
 
       mediaRecorder.onstop = () => {
         const blob = new Blob(audioChunksRef.current, {
-          type: mediaRecorder.mimeType,
+          type: mediaRecorder.mimeType || selectedType || "audio/webm",
         });
         setAudioBlob(blob);
       };
@@ -262,7 +263,7 @@ export function AudioRecorder({
           onClick={handleSend}
           disabled={isSending || (recordingTime === 0 && !audioBlob)}
           size="icon"
-          className="h-9 w-9 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-md transition-all active:scale-90"
+          className="h-9 w-9 rounded-full bg-primary hover:bg-primary/80 dark:bg-primary dark:hover:bg-primary/80 text-white shadow-md transition-all active:scale-90"
         >
           {isSending ? (
             <Loader2 className="h-5 w-5 animate-spin" />

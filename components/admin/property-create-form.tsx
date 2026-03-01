@@ -24,12 +24,15 @@ import {
   BarChart3,
   Calendar,
   Trash2,
-  CheckCircle2,
   AlertCircle,
+  Eye,
+  CalendarCheck,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import { formatPriceInput, parseCOP } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { Switch } from "@/components/ui/switch";
 
 const PROPERTY_TYPES = [
   { value: "FINCA", label: "Finca" },
@@ -74,6 +77,8 @@ export function PropertyCreateForm() {
     features: [],
     files: [],
     catalogIds: [],
+    visible: true,
+    reservable: true,
   });
 
   const [enabledSeasons, setEnabledSeasons] = useState({
@@ -383,6 +388,53 @@ export function PropertyCreateForm() {
                     placeholder="15"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Visibility & Reseravility Switches */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
+              <div className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <Eye className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">
+                      Visible en el catálogo
+                    </h3>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      Mostrar esta propiedad al público
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={form.visible}
+                  onCheckedChange={(checked) =>
+                    setForm((prev) => ({ ...prev, visible: checked }))
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                    <CalendarCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">
+                      Permitir reservaciones
+                    </h3>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      Habilitar reservas para esta propiedad
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={form.reservable}
+                  onCheckedChange={(checked) =>
+                    setForm((prev) => ({ ...prev, reservable: checked }))
+                  }
+                />
               </div>
             </div>
           </div>

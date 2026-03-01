@@ -90,6 +90,8 @@ export interface PropertyResponse {
   reviewsCount: number;
   isFavorite?: boolean;
   isNew?: boolean;
+  visible?: boolean;
+  reservable?: boolean;
   createdAt?: number;
   updatedAt?: number;
   _creationTime?: number;
@@ -138,6 +140,8 @@ export interface UpdatePropertyPayload {
   images?: string[];
   imageItems?: PropertyImageItem[];
   coordinates?: { lat: number; lng: number };
+  visible?: boolean;
+  reservable?: boolean;
   seasonPrices?: {
     base: number;
     baja: number;
@@ -221,8 +225,13 @@ const createProperty = async (
   if (payload.type) formData.append("type", payload.type);
   if (payload.category) formData.append("category", payload.category);
 
+  if (payload.visible !== undefined)
+    formData.append("visible", String(payload.visible));
+  if (payload.reservable !== undefined)
+    formData.append("reservable", String(payload.reservable));
+
   if (payload.catalogIds && payload.catalogIds.length > 0) {
-    payload.catalogIds.forEach((id) => formData.append("catalogIds", id));
+    formData.append("catalogIds", JSON.stringify(payload.catalogIds));
   }
 
   // Pricing Rules
@@ -247,7 +256,7 @@ const createProperty = async (
   if (lng !== undefined) formData.append("lng", String(lng));
 
   if (payload.features) {
-    payload.features.forEach((f) => formData.append("features", f));
+    formData.append("features", JSON.stringify(payload.features));
   }
 
   if (payload.files) {
@@ -279,8 +288,13 @@ const updateProperty = async ({
   if (payload.category !== undefined)
     formData.append("category", payload.category);
 
+  if (payload.visible !== undefined)
+    formData.append("visible", String(payload.visible));
+  if (payload.reservable !== undefined)
+    formData.append("reservable", String(payload.reservable));
+
   if (payload.catalogIds !== undefined) {
-    payload.catalogIds.forEach((id) => formData.append("catalogIds", id));
+    formData.append("catalogIds", JSON.stringify(payload.catalogIds));
   }
 
   // Pricing Rules
@@ -304,7 +318,7 @@ const updateProperty = async ({
   if (lng !== undefined) formData.append("lng", String(lng));
 
   if (payload.features) {
-    payload.features.forEach((f) => formData.append("features", f));
+    formData.append("features", JSON.stringify(payload.features));
   }
 
   if (payload.files && payload.files.length > 0) {

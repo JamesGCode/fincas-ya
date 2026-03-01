@@ -32,8 +32,29 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
+      const status = error.response.status;
+      const data = error.response.data;
+
+      let isAuthError = status === 401 || status === 403;
+
+      if (
+        status === 400 &&
+        data &&
+        typeof data.message === "string" &&
+        data.message.includes("InvalidAuthHeader")
+      ) {
+        isAuthError = true;
+      }
+
+      if (isAuthError && !isServer) {
+        console.error("No autorizado o token expirado");
+        if (window.location.pathname !== "/admin/login") {
+          window.location.href = `/admin/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`;
+        }
+      }
+
       // Manejo de errores HTTP
-      switch (error.response.status) {
+      switch (status) {
         case 401:
           console.error("No autorizado");
           break;
@@ -47,7 +68,7 @@ api.interceptors.response.use(
           console.error("Error del servidor");
           break;
         default:
-          console.error("Error:", error.response.status);
+          console.error("Error:", status);
       }
     } else if (error.request) {
       console.error("Error de red: no se recibió respuesta");

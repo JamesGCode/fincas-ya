@@ -32,10 +32,14 @@ import {
   Circle,
   Calendar,
   PlusCircle,
+  AlertTriangle,
+  Eye,
+  CalendarCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { formatPriceInput, parseCOP } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
@@ -125,10 +129,12 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
         seasonPrices: property.seasonPrices,
         images: property.images,
         imageItems: property.imageItems,
-        features: property.features,
-        video: property.video,
-        coordinates: property.coordinates,
+        features: property.features || [],
+        files: [],
+        videoFile: undefined,
         catalogIds: property.catalogIds || [],
+        visible: property.visible ?? true,
+        reservable: property.reservable ?? true,
       });
 
       setEnabledSeasons({
@@ -558,6 +564,53 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
                     className={`${inputClass} pl-11`}
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Visibility & Reseravility Switches */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
+              <div className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <Eye className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">
+                      Visible en el catálogo
+                    </h3>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      Mostrar esta propiedad al público
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={form.visible}
+                  onCheckedChange={(checked) =>
+                    setForm((prev) => ({ ...prev, visible: checked }))
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                    <CalendarCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">
+                      Permitir reservaciones
+                    </h3>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      Habilitar reservas para esta propiedad
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={form.reservable}
+                  onCheckedChange={(checked) =>
+                    setForm((prev) => ({ ...prev, reservable: checked }))
+                  }
+                />
               </div>
             </div>
 
