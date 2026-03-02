@@ -1,76 +1,1 @@
-import { NextRequest, NextResponse } from "next/server";
-
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const url = searchParams.get("url");
-
-  if (!url) {
-    return new NextResponse("Missing url parameter", { status: 400 });
-  }
-
-  try {
-    const response = await fetch(url, {
-      method: "GET",
-      // Disable caching essentially for this proxy if needed, though S3 can be cached
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch from url: ${response.statusText}`);
-    }
-
-    const contentType = response.headers.get("content-type");
-    const buffer = await response.arrayBuffer();
-
-    return new NextResponse(buffer, {
-      status: 200,
-      headers: {
-        "Content-Type": contentType || "application/octet-stream",
-        "Access-Control-Allow-Origin": "*", // Or restrict to your domain
-      },
-    });
-  } catch (error) {
-    console.error("Error proxying request:", error);
-    return new NextResponse("Error fetching the requested URL", {
-      status: 500,
-    });
-  }
-}
-
-export async function HEAD(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const url = searchParams.get("url");
-
-  if (!url) {
-    return new NextResponse(null, { status: 400 });
-  }
-
-  try {
-    const response = await fetch(url, {
-      method: "HEAD",
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to HEAD from url: ${response.statusText}`);
-    }
-
-    const headers = new Headers();
-    headers.set("Access-Control-Allow-Origin", "*");
-
-    // Some proxies strip content-length of HEAD requests or Next.js overrides it
-    // when sending null body, so we pass it in a custom header just in case.
-    const contentLength = response.headers.get("content-length");
-    if (contentLength) {
-      headers.set("x-file-size", contentLength);
-      headers.set("Access-Control-Expose-Headers", "x-file-size");
-    }
-
-    return new NextResponse(null, {
-      status: 200,
-      headers,
-    });
-  } catch (error) {
-    console.error("Error proxying HEAD request:", error);
-    return new NextResponse(null, { status: 500 });
-  }
-}
+import { NextRequest, NextResponse } from "next/server";export async function GET(request: NextRequest) {  const searchParams = request.nextUrl.searchParams;  const url = searchParams.get("url");  if (!url) {    return new NextResponse("Missing url parameter", { status: 400 });  }  try {    const response = await fetch(url, {      method: "GET",      // Disable caching essentially for this proxy if needed, though S3 can be cached      cache: "no-store",    });    if (!response.ok) {      throw new Error(`Failed to fetch from url: ${response.statusText}`);    }    const contentType = response.headers.get("content-type");    const buffer = await response.arrayBuffer();    return new NextResponse(buffer, {      status: 200,      headers: {        "Content-Type": contentType || "application/octet-stream",        "Access-Control-Allow-Origin": "*", // Or restrict to your domain      },    });  } catch (error) {    return new NextResponse("Error fetching the requested URL", {      status: 500,    });  }}export async function HEAD(request: NextRequest) {  const searchParams = request.nextUrl.searchParams;  const url = searchParams.get("url");  if (!url) {    return new NextResponse(null, { status: 400 });  }  try {    const response = await fetch(url, {      method: "HEAD",    });    if (!response.ok) {      throw new Error(`Failed to HEAD from url: ${response.statusText}`);    }    const headers = new Headers();    headers.set("Access-Control-Allow-Origin", "*");    // Some proxies strip content-length of HEAD requests or Next.js overrides it    // when sending null body, so we pass it in a custom header just in case.    const contentLength = response.headers.get("content-length");    if (contentLength) {      headers.set("x-file-size", contentLength);      headers.set("Access-Control-Expose-Headers", "x-file-size");    }    return new NextResponse(null, {      status: 200,      headers,    });  } catch (error) {    return new NextResponse(null, { status: 500 });  }}

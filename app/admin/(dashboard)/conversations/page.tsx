@@ -1,6 +1,6 @@
 "use client";
 
-import { ConversationsLayout } from "@/components/admin/conversations/layouts/conversations-layout";
+import { ConversationsLayout } from "@/features/inbox/components/layouts/conversations-layout";
 import Image from "next/image";
 
 export default function ConversationsPage() {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import { FloatingButton } from "@/components/common/floating-button";
-import { QueryProvider } from "@/lib/query-provider";
+import { QueryProvider } from "@/lib/react-query/query-provider";
 import "./globals.css";
 
 const degular = localFont({
@@ -81,10 +81,7 @@ export const metadata: Metadata = {
     images: ["/fincas-ya-logo.png"],
   },
 };
-
 import { Toaster } from "sileo";
-
-// ... existing code ...
 
 export default function RootLayout({
   children,

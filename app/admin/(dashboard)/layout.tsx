@@ -28,8 +28,8 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { logout, getSession } from "@/lib/auth";
-import { useAuthStore } from "@/lib/auth-store";
+import { logout, getSession } from "@/features/auth/api/auth.api";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 const navItems = [
   {
@@ -53,7 +53,6 @@ function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, setUser, clearUser } = useAuthStore();
-
   // Load session on mount if not already in store
   useEffect(() => {
     if (!user) {
@@ -62,7 +61,6 @@ function AdminSidebar() {
       });
     }
   }, [user, setUser]);
-
   async function handleLogout() {
     try {
       await logout();
@@ -122,7 +120,6 @@ function AdminSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-
       {/* Navigation */}
       <SidebarContent className="px-2 py-4 bg-transparent">
         <SidebarGroup>
@@ -164,7 +161,6 @@ function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
       {/* Footer */}
       <SidebarFooter className="p-4 border-t border-zinc-200/50 bg-transparent space-y-1">
         <SidebarMenu>
@@ -192,12 +188,10 @@ function AdminSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-
       <SidebarRail />
     </Sidebar>
   );
 }
-
 export default function AdminLayout({
   children,
 }: {
@@ -205,7 +199,6 @@ export default function AdminLayout({
 }) {
   const { user } = useAuthStore();
   const pathname = usePathname();
-
   const initials = user?.name
     ? user.name
         .split(" ")
@@ -214,7 +207,6 @@ export default function AdminLayout({
         .join("")
         .toUpperCase()
     : (user?.email?.[0]?.toUpperCase() ?? "AD");
-
   return (
     <SidebarProvider>
       <AdminSidebar />
@@ -224,7 +216,6 @@ export default function AdminLayout({
           <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px]" />
           <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-orange-100/20 rounded-full blur-[100px]" />
         </div>
-
         {!pathname.startsWith("/admin/conversations") && (
           <header className="flex h-14 md:h-[60.4px] shrink-0 items-center justify-between gap-2 border-b border-gray-100 bg-white/40 backdrop-blur-md px-4 md:px-6 sticky top-0 z-10">
             <div className="flex items-center gap-3 md:gap-4">
@@ -236,7 +227,6 @@ export default function AdminLayout({
                 </span>
               </div>
             </div>
-
             <div className="flex items-center gap-3">
               {user && (
                 <div className="hidden sm:flex flex-col items-end">

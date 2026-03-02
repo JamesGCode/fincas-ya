@@ -2,20 +2,19 @@ import { notFound } from "next/navigation";
 import {
   fetchProperty,
   fetchProperties,
-  PropertyResponse,
-} from "@/hooks/use-properties";
+} from "@/features/fincas/api/fincas.api";
+import { PropertyResponse } from "@/features/fincas/types/fincas.types";
 import { Navbar } from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ReservationCard } from "@/components/fincas/reservation-card";
-import { HeroGallery } from "@/components/fincas/hero-gallery";
-import { GuestFavorite } from "@/components/fincas/guest-favorite";
+import { ReservationCard } from "@/features/fincas/components/reservation-card";
+import { HeroGallery } from "@/features/fincas/components/hero-gallery";
+import { GuestFavorite } from "@/features/fincas/components/guest-favorite";
 import { cn } from "@/lib/utils";
 import { MapPin, Users, Star, Check, MessageCircle, Play } from "lucide-react";
-import { ReviewsSection } from "@/components/reviews/reviews-section";
-import { FincaMap } from "@/components/fincas/finca-map";
-import { Recommendations } from "@/components/fincas/recommendations";
+import { ReviewsSection } from "@/features/reviews/components/reviews-section";
+import { FincaMap } from "@/features/fincas/components/finca-map";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -24,19 +23,11 @@ interface Props {
 export default async function FincaDetailPage({ params }: Props) {
   const { id } = await params;
   let finca: PropertyResponse | undefined;
-  let recommendedFincas: PropertyResponse[] = [];
 
   try {
     finca = await fetchProperty(id);
   } catch (error) {
     notFound();
-  }
-
-  try {
-    const recData = await fetchProperties({ limit: 5 });
-    recommendedFincas = recData.data || [];
-  } catch (error) {
-    console.error("Error fetching recommendations:", error);
   }
 
   const isFavorite = (finca.rating || 0) >= 4.8;
@@ -72,7 +63,6 @@ export default async function FincaDetailPage({ params }: Props) {
                   <h1 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">
                     {finca.title}
                   </h1>
-
                   <div className="flex flex-wrap items-center gap-3 mb-4 mt-2 md:mt-8">
                     <Badge variant="secondary" className="gap-1">
                       <Star className="w-3 h-3 fill-current" />
@@ -88,7 +78,6 @@ export default async function FincaDetailPage({ params }: Props) {
                     </Badge>
                   </div>
                 </div>
-
                 {/* Mobile Reel (Video) - Only visible on mobile */}
                 <div className="block lg:hidden mb-12 max-md:-mt-6 rounded-2xl overflow-hidden shadow-2xl border border-border/20 mx-3">
                   {finca.video && (
@@ -118,19 +107,15 @@ export default async function FincaDetailPage({ params }: Props) {
                     </div>
                   )}
                 </div>
-
                 <p className="text-muted-foreground md:text-lg leading-relaxed mb-8 max-md:px-3">
                   {finca.description}
                 </p>
-
                 {isFavorite && (
                   <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 max-md:px-3">
                     <GuestFavorite rating={finca.rating || 0} />
                   </div>
                 )}
-
                 <Separator className="my-8" />
-
                 {/* Features / Services */}
                 <div className="mb-12 max-md:px-3">
                   <h2 className="text-xl font-bold mb-6">
@@ -154,7 +139,6 @@ export default async function FincaDetailPage({ params }: Props) {
                     )) || <p>No features available</p>}
                   </div>
                 </div>
-
                 {/* Informative Messages and Terms... (Same as before) */}
                 <div className="space-y-6 mb-12 max-md:px-3">
                   <div className="bg-blue-600/10 border border-blue-500/20 rounded-2xl p-6 flex items-center gap-4">
@@ -170,7 +154,6 @@ export default async function FincaDetailPage({ params }: Props) {
                       .
                     </p>
                   </div>
-
                   <div className="bg-emerald-600/10 border border-emerald-500/20 rounded-2xl p-6 flex gap-4">
                     <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
                       <Star className="w-5 h-5 text-emerald-600" />
@@ -183,7 +166,6 @@ export default async function FincaDetailPage({ params }: Props) {
                     </p>
                   </div>
                 </div>
-
                 {/* Terms of Service Warning */}
                 <div className="max-md:px-3">
                   <div className="flex items-center gap-3 mb-6">
@@ -237,7 +219,6 @@ export default async function FincaDetailPage({ params }: Props) {
                   </div>
                 </div>
               </div>
-
               {/* Booking Card */}
               <div className="lg:col-span-1 max-md:px-3 md:ml-4">
                 <ReservationCard
@@ -248,29 +229,17 @@ export default async function FincaDetailPage({ params }: Props) {
                 />
               </div>
             </div>
-
             {/* Reviews Section */}
             <ReviewsSection fincaId={finca.id} />
-
             {/* Map Section */}
             <FincaMap
               lat={finca.coordinates?.lat || 0}
               lng={finca.coordinates?.lng || 0}
               location={finca.location}
             />
-
-            {/* Recommendations */}
-            {/* <Recommendations
-              fincas={recommendedFincas.map((f) => ({
-                ...f,
-                images: f.images || [],
-              }))}
-              currentId={finca.id}
-            /> */}
           </div>
         </section>
       </div>
-
       <Footer />
     </main>
   );

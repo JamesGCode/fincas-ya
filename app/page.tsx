@@ -2,43 +2,39 @@
 
 import { Navbar } from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
-import { HeroSection } from "@/components/home/hero-section";
-import { RegionFilter } from "@/components/home/region-filter";
-import { FeaturedFincas } from "@/components/home/featured-fincas";
-import { CtaSection } from "@/components/home/cta-section";
-import { useProperties, PropertyResponse } from "@/hooks/use-properties";
+import { HeroSection } from "@/features/home/components/hero-section";
+import { RegionFilter } from "@/features/home/components/region-filter";
+import { FeaturedFincas } from "@/features/home/components/featured-fincas";
+import { CtaSection } from "@/features/home/components/cta-section";
+import { useProperties } from "@/features/fincas/queries/fincas.queries";
+import { PropertyResponse } from "@/features/fincas/types/fincas.types";
 import { useState, useMemo, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useHomeStore } from "@/hooks/use-home-store";
-import { SocialSection } from "@/components/home/social-section";
-import { TestimonialsSection } from "@/components/home/testimonials-section";
+import { useHomeStore } from "@/features/home/store/home.store";
+import { SocialSection } from "@/features/home/components/social-section";
+import { TestimonialsSection } from "@/features/home/components/testimonials-section";
 
 export default function Home() {
   const { category, destination, guests, propertyName, setCategory } =
     useHomeStore();
   const [isHydrated, setIsHydrated] = useState(false);
-
   useEffect(() => {
     setIsHydrated(true);
   }, []);
-
   const { data: propertiesData, isLoading } = useProperties({ limit: 1000 });
   const fincas = useMemo(
     () => propertiesData?.properties || propertiesData?.data || [],
     [propertiesData],
   );
-
   // 1. Stage 1: Filter by search bar criteria (Destination + Guests)
   const searchFilteredFincas = useMemo(() => {
     let result = fincas;
-
     // Filter by destination (search bar)
     if (destination) {
       result = result.filter((f: PropertyResponse) =>
         (f.location || "").toLowerCase().includes(destination.toLowerCase()),
       );
     }
-
     // Filter by guests (search bar)
     if (guests) {
       const guestsCount = parseInt(guests);
@@ -48,17 +44,14 @@ export default function Home() {
         );
       }
     }
-
     // Filter by name (search bar)
     if (propertyName) {
       result = result.filter((f: PropertyResponse) =>
         (f.title || "").toLowerCase().includes(propertyName.toLowerCase()),
       );
     }
-
     return result;
   }, [destination, guests, fincas, propertyName]);
-
   // 2. Stage 2: Calculate available regions based on search results
   const availableRegions = useMemo(() => {
     const REGION_MAPPING: Record<string, string[]> = {
@@ -78,21 +71,17 @@ export default function Home() {
       luxury: [],
       eventos: [],
     };
-
     const available = new Set<string>();
-
     searchFilteredFincas.forEach((f) => {
       const location = (f.location || "").toLowerCase();
       const title = (f.title || "").toLowerCase();
       const description = (f.description || "").toLowerCase();
-
       // Check standard regions
       Object.entries(REGION_MAPPING).forEach(([id, targets]) => {
         if (targets.some((t) => location.includes(t))) {
           available.add(id);
         }
       });
-
       // Check Luxury
       if (
         title.includes("luxury") ||
@@ -101,7 +90,6 @@ export default function Home() {
       ) {
         available.add("luxury");
       }
-
       // Check Eventos
       const searchText = `${title} ${description} ${location}`;
       if (
@@ -114,14 +102,11 @@ export default function Home() {
         available.add("eventos");
       }
     });
-
     return Array.from(available);
   }, [searchFilteredFincas]);
-
   // 3. Stage 3: Final filter by category (Region Tab)
   const filteredFincas = useMemo(() => {
-    let result = searchFilteredFincas;
-
+    const result = searchFilteredFincas;
     // Region Filtering Logic (Tabs)
     const REGION_MAPPING: Record<string, string[]> = {
       "cerca-bogota": [
@@ -140,7 +125,6 @@ export default function Home() {
       luxury: [],
       eventos: [],
     };
-
     // Special handling for "Luxury"
     if (category === "luxury") {
       return result.filter(
@@ -150,7 +134,6 @@ export default function Home() {
           (f.seasonPrices?.base || 0) >= 3000000,
       );
     }
-
     // Special handling for "Eventos"
     if (category === "eventos") {
       return result.filter((f: PropertyResponse) => {
@@ -165,23 +148,18 @@ export default function Home() {
         );
       });
     }
-
     const targetLocations = REGION_MAPPING[category] || [];
-
     if (targetLocations.length > 0) {
       return result.filter((f: PropertyResponse) => {
         const location = (f.location || "").toLowerCase();
         return targetLocations.some((target) => location.includes(target));
       });
     }
-
     return result;
   }, [category, searchFilteredFincas]);
-
   const sectionTitle = useMemo(() => {
     if (destination && filteredFincas.length > 0)
       return `Resultados para "${destination}"`;
-
     const regionLabels: Record<string, string> = {
       todas: "Todas las Fincas",
       "cerca-bogota": "Cerca a Bogotá",
@@ -193,11 +171,9 @@ export default function Home() {
       luxury: "Fincas de Lujo",
       eventos: "Fincas para Eventos",
     };
-
     return regionLabels[category] || "Fincas Destacadas";
   }, [category, destination, filteredFincas.length]);
   const displayFincas = filteredFincas;
-
   // Render logic
   return (
     <main className="relative min-h-screen bg-white overflow-x-hidden">
@@ -229,7 +205,6 @@ export default function Home() {
       ) : (
         <>
           <HeroSection />
-
           <div
             id="fincas"
             className="max-w-[1600px] w-full mx-auto px-4 md:px-8"
@@ -257,7 +232,6 @@ export default function Home() {
               <FeaturedFincas fincas={displayFincas} title={sectionTitle} />
             )}
           </div>
-
           <SocialSection />
           <TestimonialsSection />
           <CtaSection />

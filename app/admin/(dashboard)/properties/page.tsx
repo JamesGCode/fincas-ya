@@ -1,29 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useProperties } from "@/hooks/use-properties";
-import { usePropertiesStore } from "@/hooks/use-properties-store";
-import { PropertiesTable } from "@/components/admin/properties-table";
-import {
-  Building2,
-  Search,
-  RefreshCw,
-  Users,
-  Star,
-  Filter,
-  Plus,
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { useProperties } from "@/features/fincas/queries/fincas.queries";
+import { usePropertiesStore } from "@/features/fincas/store/fincas.store";
+import { PropertiesTable } from "@/features/admin/components/properties-table";
+import { Search, RefreshCw, Filter, Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/query-keys";
+import { queryKeys } from "@/lib/react-query/query-keys";
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
@@ -45,14 +33,11 @@ export default function PropertiesPage() {
     setRegion,
     setItemsPerPage,
   } = usePropertiesStore();
-
   const queryClient = useQueryClient();
-
   // Prevent hydration mismatch
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
   const REGIONS = [
     { value: "all", label: "Todas las regiones" },
     { value: "Melgar", label: "Melgar" },
@@ -61,10 +46,8 @@ export default function PropertiesPage() {
     { value: "Villeta", label: "Villeta" },
     { value: "Playa", label: "Destinos de Playa" },
   ];
-
   // API returns all properties at once — do client-side pagination
   const [pageIndex, setPageIndex] = useState(0);
-
   const {
     data: propertiesData,
     isLoading,
@@ -72,9 +55,7 @@ export default function PropertiesPage() {
   } = useProperties({
     location: region !== "all" ? region : undefined,
   });
-
   const properties = propertiesData?.properties || propertiesData?.data || [];
-
   // Client-side search + sort
   const filteredProperties = [...properties]
     .filter((p) => {
@@ -82,7 +63,6 @@ export default function PropertiesPage() {
       return p.title.toLowerCase().includes(search.toLowerCase());
     })
     .sort((a, b) => a.title.localeCompare(b.title, "es"));
-
   // Client-side pagination slice
   const pageStart = pageIndex * itemsPerPage;
   const currentProperties = filteredProperties.slice(
@@ -95,33 +75,20 @@ export default function PropertiesPage() {
   );
   const hasPrev = pageIndex > 0;
   const hasNext = pageIndex < totalPages - 1;
-
   const goNext = () => {
     if (hasNext) setPageIndex((i) => i + 1);
   };
-
   const goPrev = () => {
     if (hasPrev) setPageIndex((i) => i - 1);
   };
-
   // Reset to page 0 when region or itemsPerPage changes
   useEffect(() => {
     setPageIndex(0);
   }, [region, itemsPerPage, search]);
-
   const router = useRouter();
-
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
   };
-
-  const totalProperties = propertiesData?.total ?? properties.length;
-  const totalCapacity = properties.reduce((sum, p) => sum + p.capacity, 0) || 0;
-  const avgRating = properties.length
-    ? (
-        properties.reduce((sum, p) => sum + p.rating, 0) / properties.length
-      ).toFixed(1)
-    : "0";
 
   if (!isMounted) {
     return null; // O un skeleton de carga completa si se prefiere
@@ -139,7 +106,6 @@ export default function PropertiesPage() {
             Catálogo Maestro de Fincas
           </p>
         </div>
-
         <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
           <button
             onClick={handleRefresh}
@@ -152,7 +118,6 @@ export default function PropertiesPage() {
             <span className="hidden xs:inline">Sincronizar</span>
             <span className="xs:hidden">Sinc.</span>
           </button>
-
           <button
             onClick={() => router.push("/admin/properties/new")}
             className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl bg-gray-900 text-xs md:text-sm font-black text-white hover:bg-black shadow-xl shadow-gray-200 transition-all active:scale-[0.98]"
@@ -163,88 +128,6 @@ export default function PropertiesPage() {
           </button>
         </div>
       </div>
-
-      {/* Stats Cards */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -5 }}
-          className="group rounded-3xl md:rounded-[32px] bg-linear-to-br from-white to-emerald-50/30 border border-emerald-100/50 p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all cursor-default"
-        >
-          <div className="flex items-center justify-between mb-4 md:mb-6">
-            <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-200 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              <Building2 className="w-5 h-5 md:w-7 md:h-7" />
-            </div>
-            <span className="text-[9px] md:text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 md:px-3 py-1 md:py-1.5 rounded-full uppercase tracking-widest border border-emerald-100">
-              Activos
-            </span>
-          </div>
-          <div className="space-y-1">
-            <p className="text-3xl md:text-5xl font-black text-gray-900 tracking-tighter">
-              {totalProperties}
-            </p>
-            <p className="text-[9px] md:text-xs font-black text-emerald-600/60 uppercase tracking-widest">
-              Fincas publicadas
-            </p>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          whileHover={{ y: -5 }}
-          className="group rounded-3xl md:rounded-[32px] bg-linear-to-br from-white to-blue-50/30 border border-blue-100/50 p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all cursor-default"
-        >
-          <div className="flex items-center justify-between mb-4 md:mb-6">
-            <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-200 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              <Users className="w-5 h-5 md:w-7 md:h-7" />
-            </div>
-            <span className="text-[9px] md:text-[10px] font-black text-blue-600 bg-blue-50 px-2 md:px-3 py-1 md:py-1.5 rounded-full uppercase tracking-widest border border-blue-100">
-              Carga
-            </span>
-          </div>
-          <div className="space-y-1">
-            <p className="text-3xl md:text-5xl font-black text-gray-900 tracking-tighter">
-              {totalCapacity}
-            </p>
-            <p className="text-[9px] md:text-xs font-black text-blue-600/60 uppercase tracking-widest">
-              Huéspedes totales
-            </p>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          whileHover={{ y: -5 }}
-          className="group rounded-3xl md:rounded-[32px] bg-linear-to-br from-white to-amber-50/30 border border-amber-100/50 p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-amber-500/10 transition-all cursor-default"
-        >
-          <div className="flex items-center justify-between mb-4 md:mb-6">
-            <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-200 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              <Star className="w-5 h-5 md:w-7 md:h-7" />
-            </div>
-            <span className="text-[9px] md:text-[10px] font-black text-amber-600 bg-amber-50 px-2 md:px-3 py-1 md:py-1.5 rounded-full uppercase tracking-widest border border-amber-100">
-              Rating
-            </span>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-baseline gap-2">
-              <p className="text-3xl md:text-5xl font-black text-gray-900 tracking-tighter">
-                {avgRating}
-              </p>
-              <span className="text-xs md:text-sm font-black text-amber-500/60 tracking-widest uppercase">
-                Estrellas
-              </span>
-            </div>
-            <p className="text-[9px] md:text-xs font-black text-amber-600/60 uppercase tracking-widest">
-              Calidad promedio
-            </p>
-          </div>
-        </motion.div>
-      </div> */}
 
       {/* Search + Table Container */}
       <div className="rounded-[2rem] bg-white border border-gray-100 shadow-sm overflow-hidden flex flex-col">
@@ -260,7 +143,6 @@ export default function PropertiesPage() {
               className="w-full bg-gray-50/50 border border-gray-100 rounded-xl md:rounded-2xl pl-11 pr-4 py-2.5 md:py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500/30 transition-all font-medium"
             />
           </div>
-
           <div className="flex items-center gap-2 w-full md:w-auto">
             <Select value={region} onValueChange={setRegion}>
               <SelectTrigger className="w-full md:w-[220px] bg-gray-50/50 border-gray-100 rounded-xl md:rounded-2xl h-[44px] md:h-[48px]! text-sm font-bold text-gray-600">
@@ -279,7 +161,6 @@ export default function PropertiesPage() {
                 ))}
               </SelectContent>
             </Select>
-
             {(search || region !== "all") && (
               <button
                 onClick={() => {
@@ -294,13 +175,11 @@ export default function PropertiesPage() {
             )}
           </div>
         </div>
-
         {/* Table */}
         <PropertiesTable
           properties={currentProperties || []}
           isLoading={isLoading}
         />
-
         {/* Pagination */}
         <div className="p-4 border-t border-gray-100 bg-white flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -322,7 +201,6 @@ export default function PropertiesPage() {
             </Select>
             <span>por página</span>
           </div>
-
           {(hasPrev || hasNext) && (
             <Pagination className="w-auto mx-0">
               <PaginationContent>

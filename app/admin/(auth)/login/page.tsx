@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { LoginForm } from "@/components/auth/login-form";
+import { LoginForm } from "@/features/auth/components/login-form";
 
 export default function LoginPage() {
   return (
@@ -27,10 +27,8 @@ export default function LoginPage() {
             background: "radial-gradient(circle, #4F46E5 0%, transparent 70%)",
           }}
         />
-
         {/* Base Gradient */}
         <div className="absolute inset-0 bg-neutral-50" />
-
         {/* Grid Pattern Overlay */}
         <div
           className="absolute inset-0 opacity-[0.03]"
@@ -41,13 +39,11 @@ export default function LoginPage() {
           }}
         />
       </div>
-
       {/* Content wrapper for better centering and responsiveness */}
       <div className="w-full max-w-md z-10">
         <Suspense fallback={null}>
           <LoginForm />
         </Suspense>
-
         {/* Footer links or additional info */}
         <div className="mt-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both">
           <p className="text-sm text-gray-500">

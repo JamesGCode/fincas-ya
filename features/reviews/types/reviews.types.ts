@@ -1,0 +1,1 @@
+export interface Review {  id: string;  fincaId: string;  userName: string;  userLocation: string;  rating: number; // 1-5  date: string; // ISO string or formatted string  comment: string;  monthsOnPlatform?: string; // Optional "8 meses en Airbnb" style}

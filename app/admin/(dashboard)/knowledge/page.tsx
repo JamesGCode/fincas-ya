@@ -7,7 +7,6 @@ import {
   FileText,
   X,
   CheckCircle2,
-  AlertCircle,
   RefreshCw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,18 +18,14 @@ export default function KnowledgeBasePage() {
   const [namespace, setNamespace] = useState("fincas");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   };
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
       if (
@@ -47,20 +42,17 @@ export default function KnowledgeBasePage() {
       }
     }
   };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
     }
   };
-
   const removeFile = () => {
     setFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
-
   const handleUpload = async () => {
     if (!file) {
       sileo.error({
@@ -69,7 +61,6 @@ export default function KnowledgeBasePage() {
       });
       return;
     }
-
     if (!category.trim() || !namespace.trim()) {
       sileo.error({
         title: "Campos requeridos",
@@ -77,15 +68,12 @@ export default function KnowledgeBasePage() {
       });
       return;
     }
-
     setIsUploading(true);
-    setUploadProgress(10); // Pseudo-progress
-
+    setUploadProgress(10);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("category", category);
     formData.append("namespace", namespace);
-
     try {
       // simulate progress
       const progressInterval = setInterval(() => {
@@ -97,25 +85,20 @@ export default function KnowledgeBasePage() {
           return prev + 10;
         });
       }, 300);
-
       const response = await fetch("/api/knowledge/upload", {
         method: "POST",
         body: formData,
       });
-
       clearInterval(progressInterval);
       setUploadProgress(100);
-
       if (!response.ok) {
         throw new Error("Error al subir el archivo");
       }
-
       sileo.success({
         title: "¡Archivo subido!",
         description:
           "El documento ha sido indexado correctamente en la base de conocimiento.",
       });
-
       // Reset form
       setTimeout(() => {
         removeFile();
@@ -123,7 +106,6 @@ export default function KnowledgeBasePage() {
         setIsUploading(false);
       }, 1000);
     } catch (error) {
-      console.error("Upload error:", error);
       sileo.error({
         title: "Error",
         description:
@@ -148,7 +130,6 @@ export default function KnowledgeBasePage() {
           </p>
         </div>
       </div>
-
       <div className="max-w-4xl mx-auto mt-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -171,7 +152,6 @@ export default function KnowledgeBasePage() {
               </p>
             </div>
           </div>
-
           <div className="p-6 md:p-8 space-y-8">
             {/* Form Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -202,7 +182,6 @@ export default function KnowledgeBasePage() {
                 />
               </div>
             </div>
-
             {/* Dropzone */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">
@@ -224,7 +203,6 @@ export default function KnowledgeBasePage() {
                   className="hidden"
                   accept=".pdf,.txt,.csv"
                 />
-
                 <AnimatePresence mode="wait">
                   {!file ? (
                     <motion.div
@@ -273,7 +251,6 @@ export default function KnowledgeBasePage() {
                           </p>
                         </div>
                       </div>
-
                       <button
                         type="button"
                         onClick={(e) => {
@@ -289,7 +266,6 @@ export default function KnowledgeBasePage() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-
                 {/* Upload Progress Overlay */}
                 <AnimatePresence>
                   {isUploading && (
@@ -306,7 +282,6 @@ export default function KnowledgeBasePage() {
                       <p className="text-xs text-gray-500 font-bold mt-1 tracking-widest uppercase">
                         Por favor espera...
                       </p>
-
                       <div className="w-full max-w-sm h-3 bg-gray-100 rounded-full mt-6 overflow-hidden shadow-inner">
                         <motion.div
                           className="h-full bg-[linear-gradient(to_right,var(--color-orange-400),var(--color-orange-600))]"
@@ -320,7 +295,6 @@ export default function KnowledgeBasePage() {
                 </AnimatePresence>
               </div>
             </div>
-
             {/* Submit */}
             <div className="flex justify-end pt-6 border-t border-gray-100">
               <button
@@ -343,7 +317,6 @@ export default function KnowledgeBasePage() {
             </div>
           </div>
         </motion.div>
-
         {/* Info Alert */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

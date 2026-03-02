@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 function getStrictContext<T>(
   name?: string,
 ): readonly [
@@ -13,7 +12,6 @@ function getStrictContext<T>(
   () => T,
 ] {
   const Context = React.createContext<T | undefined>(undefined);
-
   const Provider = ({
     value,
     children,
@@ -21,7 +19,6 @@ function getStrictContext<T>(
     value: T;
     children?: React.ReactNode;
   }) => <Context.Provider value={value}>{children}</Context.Provider>;
-
   const useSafeContext = () => {
     const ctx = React.useContext(Context);
     if (ctx === undefined) {
@@ -29,8 +26,6 @@ function getStrictContext<T>(
     }
     return ctx;
   };
-
   return [Provider, useSafeContext] as const;
 }
-
 export { getStrictContext };
