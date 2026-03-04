@@ -1135,30 +1135,49 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
                 </p>
               </div>
             </div>
-            {/* Select All / Deselect All toggle */}
+            {/* Action Buttons: Select All & Delete Selected */}
             {totalImages > 0 && (
-              <button
-                type="button"
-                onClick={toggleSelectAll}
-                className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 active:scale-95 shadow-sm
-                  ${
-                    allSelected
-                      ? "bg-gray-900 text-white border-gray-900 hover:bg-black"
-                      : "bg-white text-gray-500 border-gray-100 hover:border-orange-200 hover:text-orange-600 hover:bg-orange-50/50"
-                  }`}
-              >
-                {allSelected ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>Todas seleccionadas</span>
-                  </>
-                ) : (
-                  <>
-                    <Circle className="w-4 h-4 text-gray-300" />
-                    <span>Seleccionar todas</span>
-                  </>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 active:scale-95 shadow-sm
+                    ${
+                      allSelected
+                        ? "bg-gray-900 text-white border-gray-900 hover:bg-black"
+                        : "bg-white text-gray-500 border-gray-100 hover:border-orange-200 hover:text-orange-600 hover:bg-orange-50/50"
+                    }`}
+                >
+                  {allSelected ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <span>Todas seleccionadas</span>
+                    </>
+                  ) : (
+                    <>
+                      <Circle className="w-4 h-4 text-gray-300" />
+                      <span>Seleccionar todas</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Delete Selected Button - Now moved here */}
+                {selectedImages.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={deleteSelectedImages}
+                    disabled={isDeletingSelected}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 shadow-lg shadow-red-500/20"
+                  >
+                    {isDeletingSelected ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                    <span>Eliminar ({selectedImages.size})</span>
+                  </button>
                 )}
-              </button>
+              </div>
             )}
           </div>
           <div className="p-8 space-y-10">
@@ -1344,52 +1363,6 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
           </button>
         </div>
       </form>
-      {/* Floating multi-delete action bar */}
-      <div
-        className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ease-out
-          ${
-            selectedImages.size > 0
-              ? "opacity-100 translate-y-0 pointer-events-auto"
-              : "opacity-0 translate-y-6 pointer-events-none"
-          }`}
-      >
-        <div className="flex items-center gap-4 px-6 py-4 rounded-[28px] bg-gray-950 shadow-2xl shadow-black/40 border border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center shadow-inner">
-              <span className="text-white text-sm font-black leading-none">
-                {selectedImages.size}
-              </span>
-            </div>
-            <span className="text-white text-sm font-bold">
-              {selectedImages.size === 1
-                ? "imagen seleccionada"
-                : "imágenes seleccionadas"}
-            </span>
-          </div>
-          <div className="w-px h-8 bg-white/10" />
-          <button
-            type="button"
-            onClick={() => setSelectedImages(new Set())}
-            className="text-gray-400 hover:text-white text-xs font-black uppercase tracking-widest transition-colors px-2 py-1 rounded-xl hover:bg-white/10"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={deleteSelectedImages}
-            disabled={isDeletingSelected}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[16px] bg-red-500 hover:bg-red-600 text-white text-sm font-black transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 shadow-lg shadow-red-500/30"
-          >
-            {isDeletingSelected ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Trash2 className="w-4 h-4" />
-            )}
-            Eliminar{" "}
-            {selectedImages.size > 1 ? `${selectedImages.size} fotos` : "foto"}
-          </button>
-        </div>
-      </div>
       {/* Delete Video Confirmation Dialog */}
       <AlertDialog
         open={showDeleteVideoDialog}

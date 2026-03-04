@@ -1,9 +1,8 @@
+"use client";
+
+import { use } from "react";
 import { notFound } from "next/navigation";
-import {
-  fetchProperty,
-  fetchProperties,
-} from "@/features/fincas/api/fincas.api";
-import { PropertyResponse } from "@/features/fincas/types/fincas.types";
+import { useProperty } from "@/features/fincas/queries/fincas.queries";
 import { Navbar } from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
 import { Badge } from "@/components/ui/badge";
@@ -15,18 +14,27 @@ import { cn } from "@/lib/utils";
 import { MapPin, Users, Star, Check, MessageCircle, Play } from "lucide-react";
 import { ReviewsSection } from "@/features/reviews/components/reviews-section";
 import { FincaMap } from "@/features/fincas/components/finca-map";
+import { FincaDetailSkeleton } from "@/features/fincas/components/finca-detail-skeleton";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
-export default async function FincaDetailPage({ params }: Props) {
-  const { id } = await params;
-  let finca: PropertyResponse | undefined;
+export default function FincaDetailPage({ params }: Props) {
+  const { id } = use(params);
+  const { data: finca, isLoading, isError } = useProperty(id);
 
-  try {
-    finca = await fetchProperty(id);
-  } catch (error) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <FincaDetailSkeleton />
+        <Footer />
+      </div>
+    );
+  }
+
+  if (isError || !finca) {
     notFound();
   }
 
@@ -135,8 +143,6 @@ export default async function FincaDetailPage({ params }: Props) {
                         className="flex items-center gap-4 py-2 border-b border-border/40 last:border-0"
                       >
                         <div className="w-10 h-10 rounded-lg bg-secondary/30 flex items-center justify-center shrink-0">
-                          {/* Here we would map icons, for now simplistic checkmark or specific logic */}
-                          {/* To strictly match user request for "style", we'd ideally map names to icons */}
                           <Check className="w-5 h-5 text-foreground" />
                         </div>
                         <span className="text-base font-medium text-foreground/90">
@@ -146,7 +152,7 @@ export default async function FincaDetailPage({ params }: Props) {
                     )) || <p>No features available</p>}
                   </div>
                 </div>
-                {/* Informative Messages and Terms... (Same as before) */}
+                {/* Informative Messages and Terms */}
                 <div className="space-y-6 mb-12 max-md:px-3">
                   <div className="bg-blue-600/10 border border-blue-500/20 rounded-2xl p-6 flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
@@ -183,7 +189,6 @@ export default async function FincaDetailPage({ params }: Props) {
                       Condiciones y Responsabilidades
                     </h3>
                   </div>
-                  {/* Terms content omitted for brevity, assume keeping original */}
                   <div className="space-y-4 text-muted-foreground text-sm leading-relaxed px-2">
                     <p>
                       <strong className="text-foreground">FINCASYA</strong> no
