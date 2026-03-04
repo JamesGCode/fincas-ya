@@ -30,8 +30,9 @@ export default async function FincaDetailPage({ params }: Props) {
     notFound();
   }
 
-  const isFavorite = (finca.rating || 0) >= 4.8;
+  const isFavorite = finca.isFavorite ?? (finca.rating || 0) >= 4.8;
   const currentPrice = finca.seasonPrices?.base || 0;
+  const priceOriginal = finca.priceOriginal || 0;
 
   return (
     <main
@@ -76,6 +77,12 @@ export default async function FincaDetailPage({ params }: Props) {
                       <Users className="w-3 h-3" />
                       {finca.capacity} Personas
                     </Badge>
+                    {isFavorite && (
+                      <Badge className="gap-1 bg-primary text-primary-foreground hover:bg-primary/90 border-none">
+                        <Star className="w-3 h-3 fill-current" />
+                        Favorita
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 {/* Mobile Reel (Video) - Only visible on mobile */}
@@ -224,6 +231,7 @@ export default async function FincaDetailPage({ params }: Props) {
                 <ReservationCard
                   title={finca.title}
                   price={currentPrice}
+                  priceOriginal={priceOriginal}
                   maxGuests={finca.capacity}
                   rating={finca.rating || 0}
                 />

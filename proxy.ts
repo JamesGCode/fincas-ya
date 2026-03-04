@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Routes that require authentication
-const PROTECTED_PATHS = ["/admin/properties"];
+const PROTECTED_PATHS = [
+  "/admin/properties",
+  "/admin/knowledge",
+  "/admin/conversations",
+];
 
 // Routes that are always public (even inside /admin)
 const PUBLIC_PATHS = ["/admin/login"];
@@ -27,14 +31,6 @@ export function proxy(request: NextRequest) {
   const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
 
   if (isProtected) {
-    // The backend's session cookie is now set on this domain via
-    // the API proxy route at /api/auth/[...path].
-    // Check common Better Auth cookie names:
-    const hasSession =
-      request.cookies.has("better-auth.session_token") ||
-      request.cookies.has("better-auth.session_data") ||
-      request.cookies.has("__Secure-better-auth.session_token");
-
     if (!hasSession) {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("callbackUrl", pathname);
@@ -46,5 +42,10 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/properties/:path*", "/admin/login"],
+  matcher: [
+    "/admin/properties/:path*",
+    "/admin/knowledge/:path*",
+    "/admin/conversations/:path*",
+    "/admin/login",
+  ],
 };

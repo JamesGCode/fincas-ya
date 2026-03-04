@@ -72,6 +72,10 @@ export default function Home() {
       eventos: [],
     };
     const available = new Set<string>();
+    // Show Favoritas tab only if there is at least one favorite property
+    if (searchFilteredFincas.some((f) => f.isFavorite)) {
+      available.add("favoritas");
+    }
     searchFilteredFincas.forEach((f) => {
       const location = (f.location || "").toLowerCase();
       const title = (f.title || "").toLowerCase();
@@ -109,6 +113,7 @@ export default function Home() {
     const result = searchFilteredFincas;
     // Region Filtering Logic (Tabs)
     const REGION_MAPPING: Record<string, string[]> = {
+      favoritas: [],
       "cerca-bogota": [
         "viotá",
         "cundinamarca",
@@ -125,18 +130,23 @@ export default function Home() {
       luxury: [],
       eventos: [],
     };
-    // Special handling for "Luxury"
-    if (category === "luxury") {
-      return result.filter(
+
+    let filtered = result;
+
+    // Special handling for "Favoritas" - only show favorites
+    if (category === "favoritas") {
+      return result.filter((f: PropertyResponse) => f.isFavorite);
+    } else if (category === "luxury") {
+      // Special handling for "Luxury"
+      filtered = result.filter(
         (f: PropertyResponse) =>
           (f.title || "").toLowerCase().includes("luxury") ||
           (f.description || "").toLowerCase().includes("lujo") ||
           (f.seasonPrices?.base || 0) >= 3000000,
       );
-    }
-    // Special handling for "Eventos"
-    if (category === "eventos") {
-      return result.filter((f: PropertyResponse) => {
+    } else if (category === "eventos") {
+      // Special handling for "Eventos"
+      filtered = result.filter((f: PropertyResponse) => {
         const searchText =
           `${f.title || ""} ${f.description || ""} ${f.location || ""}`.toLowerCase();
         return (
@@ -147,20 +157,28 @@ export default function Home() {
           searchText.includes("reunión")
         );
       });
+    } else {
+      const targetLocations = REGION_MAPPING[category] || [];
+      if (targetLocations.length > 0) {
+        filtered = result.filter((f: PropertyResponse) => {
+          const location = (f.location || "").toLowerCase();
+          return targetLocations.some((target) => location.includes(target));
+        });
+      }
     }
-    const targetLocations = REGION_MAPPING[category] || [];
-    if (targetLocations.length > 0) {
-      return result.filter((f: PropertyResponse) => {
-        const location = (f.location || "").toLowerCase();
-        return targetLocations.some((target) => location.includes(target));
-      });
-    }
-    return result;
+
+    // ALWAYS sort by isFavorite first, unless we are in the favoritas category itself
+    return [...filtered].sort((a, b) => {
+      if (a.isFavorite && !b.isFavorite) return -1;
+      if (!a.isFavorite && b.isFavorite) return 1;
+      return 0;
+    });
   }, [category, searchFilteredFincas]);
   const sectionTitle = useMemo(() => {
     if (destination && filteredFincas.length > 0)
       return `Resultados para "${destination}"`;
     const regionLabels: Record<string, string> = {
+      favoritas: "Favoritas entre viajeros",
       todas: "Todas las Fincas",
       "cerca-bogota": "Cerca a Bogotá",
       melgar: "Melgar",

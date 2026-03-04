@@ -1,1 +1,196 @@
-import api from "@/lib/axios/client";import {  PropertiesParams,  PaginatedResponse,  PropertyResponse,  Catalog,  UpdatePropertyPayload,} from "../types/fincas.types";export function normalizeProperty(p: any): PropertyResponse {  return {    ...p,    id: p._id || p.id,    price: p.priceBase ?? 0,    reviewsCount: p.reviewsCount ?? 0,    coordinates:      p.coordinates ??      (p.lat !== undefined && p.lng !== undefined        ? { lat: p.lat, lng: p.lng }        : { lat: 0, lng: 0 }),    seasonPrices: {      base: p.priceBase ?? 0,      baja: p.priceBaja ?? 0,      media: p.priceMedia ?? 0,      alta: p.priceAlta ?? 0,      rules: p.pricing || [],    },  };}export const fetchProperties = async (  params: PropertiesParams = {},): Promise<PaginatedResponse<PropertyResponse>> => {  const cleanParams = Object.fromEntries(    Object.entries(params).filter(      ([, v]) => v !== "" && v !== undefined && v !== null,    ),  );  const { data } = await api.get("/api/fincas", { params: cleanParams });  if (data.properties) {    data.properties = data.properties.map(normalizeProperty);  }  return data;};export const fetchProperty = async (id: string): Promise<PropertyResponse> => {  const { data } = await api.get(`/api/fincas/${id}`);  return normalizeProperty(data);};export const fetchCatalogs = async (): Promise<Catalog[]> => {  const { data } = await api.get("/api/catalogs");  return data;};export const createProperty = async (  payload: UpdatePropertyPayload,): Promise<PropertyResponse> => {  const formData = new FormData();  if (payload.title) formData.append("title", payload.title);  if (payload.description) formData.append("description", payload.description);  if (payload.location) formData.append("location", payload.location);  if (payload.capacity !== undefined)    formData.append("capacity", String(payload.capacity));  if (payload.code) formData.append("code", payload.code);  if (payload.type) formData.append("type", payload.type);  if (payload.category) formData.append("category", payload.category);  if (payload.visible !== undefined)    formData.append("visible", String(payload.visible));  if (payload.reservable !== undefined)    formData.append("reservable", String(payload.reservable));  if (payload.catalogIds && payload.catalogIds.length > 0) {    formData.append("catalogIds", JSON.stringify(payload.catalogIds));  }  if (payload.priceBase !== undefined)    formData.append("priceBase", String(payload.priceBase));  if (payload.priceBaja !== undefined)    formData.append("priceBaja", String(payload.priceBaja));  if (payload.priceMedia !== undefined)    formData.append("priceMedia", String(payload.priceMedia));  if (payload.priceAlta !== undefined)    formData.append("priceAlta", String(payload.priceAlta));  if (payload.pricing) {    formData.append("pricing", JSON.stringify(payload.pricing));  }  const coords = payload.coordinates;  const lat = payload.lat ?? coords?.lat;  const lng = payload.lng ?? coords?.lng;  if (lat !== undefined) formData.append("lat", String(lat));  if (lng !== undefined) formData.append("lng", String(lng));  if (payload.features) {    formData.append("features", JSON.stringify(payload.features));  }  if (payload.files) {    payload.files.forEach((file) => formData.append("images", file));  }  const { data } = await api.post("/api/fincas", formData);  return normalizeProperty(data);};export const updateProperty = async ({  id,  payload,}: {  id: string;  payload: UpdatePropertyPayload;}): Promise<PropertyResponse> => {  const formData = new FormData();  if (payload.title !== undefined) formData.append("title", payload.title);  if (payload.description !== undefined)    formData.append("description", payload.description);  if (payload.location !== undefined)    formData.append("location", payload.location);  if (payload.capacity !== undefined)    formData.append("capacity", String(payload.capacity));  if (payload.code !== undefined) formData.append("code", payload.code);  if (payload.type !== undefined) formData.append("type", payload.type);  if (payload.category !== undefined)    formData.append("category", payload.category);  if (payload.visible !== undefined)    formData.append("visible", String(payload.visible));  if (payload.reservable !== undefined)    formData.append("reservable", String(payload.reservable));  if (payload.catalogIds !== undefined) {    formData.append("catalogIds", JSON.stringify(payload.catalogIds));  }  if (payload.priceBase !== undefined)    formData.append("priceBase", String(payload.priceBase));  if (payload.priceBaja !== undefined)    formData.append("priceBaja", String(payload.priceBaja));  if (payload.priceMedia !== undefined)    formData.append("priceMedia", String(payload.priceMedia));  if (payload.priceAlta !== undefined)    formData.append("priceAlta", String(payload.priceAlta));  if (payload.pricing) {    formData.append("pricing", JSON.stringify(payload.pricing));  }  const coords = payload.coordinates;  const lat = payload.lat ?? coords?.lat;  const lng = payload.lng ?? coords?.lng;  if (lat !== undefined) formData.append("lat", String(lat));  if (lng !== undefined) formData.append("lng", String(lng));  if (payload.features) {    formData.append("features", JSON.stringify(payload.features));  }  if (payload.files && payload.files.length > 0) {    payload.files.forEach((file) => formData.append("images", file));  }  const { data } = await api.put(`/api/fincas/${id}`, formData);  return normalizeProperty(data);};export const addPropertyImage = async ({  id,  file,}: {  id: string;  file: File;}): Promise<PropertyResponse> => {  const formData = new FormData();  formData.append("image", file);  const { data } = await api.post(`/api/fincas/${id}/images`, formData);  return normalizeProperty(data);};export const deletePropertyImage = async ({  imageId,}: {  imageId: string;}): Promise<void> => {  await api.delete(`/api/fincas/images/${imageId}`);};export const uploadPropertyVideo = async ({  id,  videoFile,}: {  id: string;  videoFile: File;}): Promise<PropertyResponse> => {  const formData = new FormData();  formData.append("video", videoFile);  const { data } = await api.post(`/api/fincas/${id}/video`, formData);  return normalizeProperty(data);};export const deletePropertyVideo = async ({  id,}: {  id: string;}): Promise<void> => {  await api.delete(`/api/fincas/${id}/video`);};export const deleteProperty = async (id: string): Promise<void> => {  await api.delete(`/api/fincas/${id}`);};
+import api from "@/lib/axios/client";
+import {
+  PropertiesParams,
+  PaginatedResponse,
+  PropertyResponse,
+  Catalog,
+  UpdatePropertyPayload,
+} from "../types/fincas.types";
+export function normalizeProperty(p: any): PropertyResponse {
+  return {
+    ...p,
+    id: p._id || p.id,
+    price: p.priceBase ?? 0,
+    priceOriginal: p.priceOriginal ?? 0,
+    isFavorite: p.isFavorite ?? false,
+    reviewsCount: p.reviewsCount ?? 0,
+    coordinates:
+      p.coordinates ??
+      (p.lat !== undefined && p.lng !== undefined
+        ? { lat: p.lat, lng: p.lng }
+        : { lat: 0, lng: 0 }),
+    seasonPrices: {
+      base: p.priceBase ?? 0,
+      baja: p.priceBaja ?? 0,
+      media: p.priceMedia ?? 0,
+      alta: p.priceAlta ?? 0,
+      rules: p.pricing || [],
+    },
+  };
+}
+export const fetchProperties = async (
+  params: PropertiesParams = {},
+): Promise<PaginatedResponse<PropertyResponse>> => {
+  const cleanParams = Object.fromEntries(
+    Object.entries(params).filter(
+      ([, v]) => v !== "" && v !== undefined && v !== null,
+    ),
+  );
+  const { data } = await api.get("/api/fincas", { params: cleanParams });
+  if (data.properties) {
+    data.properties = data.properties.map(normalizeProperty);
+  }
+  return data;
+};
+export const fetchProperty = async (id: string): Promise<PropertyResponse> => {
+  const { data } = await api.get(`/api/fincas/${id}`);
+  return normalizeProperty(data);
+};
+export const fetchCatalogs = async (): Promise<Catalog[]> => {
+  const { data } = await api.get("/api/catalogs");
+  return data;
+};
+export const createProperty = async (
+  payload: UpdatePropertyPayload,
+): Promise<PropertyResponse> => {
+  const formData = new FormData();
+  if (payload.title) formData.append("title", payload.title);
+  if (payload.description) formData.append("description", payload.description);
+  if (payload.location) formData.append("location", payload.location);
+  if (payload.capacity !== undefined)
+    formData.append("capacity", String(payload.capacity));
+  if (payload.code) formData.append("code", payload.code);
+  if (payload.type) formData.append("type", payload.type);
+  if (payload.category) formData.append("category", payload.category);
+  if (payload.visible !== undefined)
+    formData.append("visible", String(payload.visible));
+  if (payload.reservable !== undefined)
+    formData.append("reservable", String(payload.reservable));
+  if (payload.isFavorite !== undefined)
+    formData.append("isFavorite", String(payload.isFavorite));
+  if (payload.priceOriginal !== undefined)
+    formData.append("priceOriginal", String(payload.priceOriginal));
+  if (payload.catalogIds && payload.catalogIds.length > 0) {
+    formData.append("catalogIds", JSON.stringify(payload.catalogIds));
+  }
+  if (payload.priceBase !== undefined)
+    formData.append("priceBase", String(payload.priceBase));
+  if (payload.priceBaja !== undefined)
+    formData.append("priceBaja", String(payload.priceBaja));
+  if (payload.priceMedia !== undefined)
+    formData.append("priceMedia", String(payload.priceMedia));
+  if (payload.priceAlta !== undefined)
+    formData.append("priceAlta", String(payload.priceAlta));
+  if (payload.pricing) {
+    formData.append("pricing", JSON.stringify(payload.pricing));
+  }
+  const coords = payload.coordinates;
+  const lat = payload.lat ?? coords?.lat;
+  const lng = payload.lng ?? coords?.lng;
+  if (lat !== undefined) formData.append("lat", String(lat));
+  if (lng !== undefined) formData.append("lng", String(lng));
+  if (payload.features) {
+    formData.append("features", JSON.stringify(payload.features));
+  }
+  if (payload.files) {
+    payload.files.forEach((file) => formData.append("images", file));
+  }
+  const { data } = await api.post("/api/fincas", formData);
+  return normalizeProperty(data);
+};
+export const updateProperty = async ({
+  id,
+  payload,
+}: {
+  id: string;
+  payload: UpdatePropertyPayload;
+}): Promise<PropertyResponse> => {
+  const formData = new FormData();
+  if (payload.title !== undefined) formData.append("title", payload.title);
+  if (payload.description !== undefined)
+    formData.append("description", payload.description);
+  if (payload.location !== undefined)
+    formData.append("location", payload.location);
+  if (payload.capacity !== undefined)
+    formData.append("capacity", String(payload.capacity));
+  if (payload.code !== undefined) formData.append("code", payload.code);
+  if (payload.type !== undefined) formData.append("type", payload.type);
+  if (payload.category !== undefined)
+    formData.append("category", payload.category);
+  if (payload.visible !== undefined)
+    formData.append("visible", String(payload.visible));
+  if (payload.reservable !== undefined)
+    formData.append("reservable", String(payload.reservable));
+  if (payload.isFavorite !== undefined)
+    formData.append("isFavorite", String(payload.isFavorite));
+  if (payload.priceOriginal !== undefined)
+    formData.append("priceOriginal", String(payload.priceOriginal));
+  if (payload.catalogIds !== undefined) {
+    formData.append("catalogIds", JSON.stringify(payload.catalogIds));
+  }
+  if (payload.priceBase !== undefined)
+    formData.append("priceBase", String(payload.priceBase));
+  if (payload.priceBaja !== undefined)
+    formData.append("priceBaja", String(payload.priceBaja));
+  if (payload.priceMedia !== undefined)
+    formData.append("priceMedia", String(payload.priceMedia));
+  if (payload.priceAlta !== undefined)
+    formData.append("priceAlta", String(payload.priceAlta));
+  if (payload.pricing) {
+    formData.append("pricing", JSON.stringify(payload.pricing));
+  }
+  const coords = payload.coordinates;
+  const lat = payload.lat ?? coords?.lat;
+  const lng = payload.lng ?? coords?.lng;
+  if (lat !== undefined) formData.append("lat", String(lat));
+  if (lng !== undefined) formData.append("lng", String(lng));
+  if (payload.features) {
+    formData.append("features", JSON.stringify(payload.features));
+  }
+  if (payload.files && payload.files.length > 0) {
+    payload.files.forEach((file) => formData.append("images", file));
+  }
+  const { data } = await api.put(`/api/fincas/${id}`, formData);
+  return normalizeProperty(data);
+};
+export const addPropertyImage = async ({
+  id,
+  file,
+}: {
+  id: string;
+  file: File;
+}): Promise<PropertyResponse> => {
+  const formData = new FormData();
+  formData.append("image", file);
+  const { data } = await api.post(`/api/fincas/${id}/images`, formData);
+  return normalizeProperty(data);
+};
+export const deletePropertyImage = async ({
+  imageId,
+}: {
+  imageId: string;
+}): Promise<void> => {
+  await api.delete(`/api/fincas/images/${imageId}`);
+};
+export const uploadPropertyVideo = async ({
+  id,
+  videoFile,
+}: {
+  id: string;
+  videoFile: File;
+}): Promise<PropertyResponse> => {
+  const formData = new FormData();
+  formData.append("video", videoFile);
+  const { data } = await api.post(`/api/fincas/${id}/video`, formData);
+  return normalizeProperty(data);
+};
+export const deletePropertyVideo = async ({
+  id,
+}: {
+  id: string;
+}): Promise<void> => {
+  await api.delete(`/api/fincas/${id}/video`);
+};
+export const deleteProperty = async (id: string): Promise<void> => {
+  await api.delete(`/api/fincas/${id}`);
+};

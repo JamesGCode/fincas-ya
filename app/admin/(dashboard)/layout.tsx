@@ -9,6 +9,7 @@ import {
   LogOut,
   Brain,
   MessageSquare,
+  Users,
 } from "lucide-react";
 import { useEffect } from "react";
 import { sileo } from "sileo";
@@ -36,6 +37,11 @@ const navItems = [
     label: "Propiedades",
     href: "/admin/properties",
     icon: Building2,
+  },
+  {
+    label: "Usuarios",
+    href: "/admin/users",
+    icon: Users,
   },
   {
     label: "Base de Conocimiento",
