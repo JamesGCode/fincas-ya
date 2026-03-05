@@ -1,0 +1,12 @@
+﻿features/admin/components/property-create-form.tsx(120,18): error TS2339: Property 'nombre' does not exist on type '{ fechaHasta: string; valorUnico: number; activa: boolean; }'.
+features/admin/components/property-create-form.tsx(120,37): error TS2339: Property 'fechaDesde' does not exist on type '{ fechaHasta: string; valorUnico: number; activa: boolean; }'.
+features/admin/components/property-create-form.tsx(124,13): error TS2345: Argument of type '(prev: UpdatePropertyPayload) => { pricing: (PricingRule | { fechaHasta: string; valorUnico: number; activa: boolean; })[]; title?: string | undefined; ... 25 more ...; videoFile?: File | undefined; }' is not assignable to parameter of type 'SetStateAction<UpdatePropertyPayload>'.
+  Type '(prev: UpdatePropertyPayload) => { pricing: (PricingRule | { fechaHasta: string; valorUnico: number; activa: boolean; })[]; title?: string | undefined; ... 25 more ...; videoFile?: File | undefined; }' is not assignable to type '(prevState: UpdatePropertyPayload) => UpdatePropertyPayload'.
+    Call signature return types '{ pricing: (PricingRule | { fechaHasta: string; valorUnico: number; activa: boolean; })[]; title?: string | undefined; description?: string | undefined; location?: string | undefined; ... 23 more ...; videoFile?: File | undefined; }' and 'UpdatePropertyPayload' are incompatible.
+      The types of 'pricing' are incompatible between these types.
+        Type '(PricingRule | { fechaHasta: string; valorUnico: number; activa: boolean; })[]' is not assignable to type 'PricingRule[]'.
+          Type 'PricingRule | { fechaHasta: string; valorUnico: number; activa: boolean; }' is not assignable to type 'PricingRule'.
+            Type '{ fechaHasta: string; valorUnico: number; activa: boolean; }' is missing the following properties from type 'PricingRule': nombre, fechaDesde
+features/admin/components/property-create-form.tsx(129,7): error TS2353: Object literal may only specify known properties, and 'nombre' does not exist in type 'SetStateAction<{ fechaHasta: string; valorUnico: number; activa: boolean; }>'.
+features/admin/components/property-create-form.tsx(648,38): error TS2339: Property 'nombre' does not exist on type '{ fechaHasta: string; valorUnico: number; activa: boolean; }'.
+features/admin/components/property-create-form.tsx(665,38): error TS2339: Property 'fechaDesde' does not exist on type '{ fechaHasta: string; valorUnico: number; activa: boolean; }'.

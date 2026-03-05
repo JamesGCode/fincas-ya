@@ -10,6 +10,7 @@ import {
   Brain,
   MessageSquare,
   Users,
+  Sparkles,
 } from "lucide-react";
 import { useEffect } from "react";
 import { sileo } from "sileo";
@@ -42,6 +43,11 @@ const navItems = [
     label: "Usuarios",
     href: "/admin/users",
     icon: Users,
+  },
+  {
+    label: "Características",
+    href: "/admin/features",
+    icon: Sparkles,
   },
   {
     label: "Base de Conocimiento",

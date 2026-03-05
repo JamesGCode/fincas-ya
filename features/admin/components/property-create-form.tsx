@@ -6,6 +6,8 @@ import {
   useCreateProperty,
   useCatalogs,
 } from "@/features/fincas/queries/fincas.queries";
+import { useFeatures } from "@/features/admin/queries/features.queries";
+import { FeaturePicker } from "./feature-picker";
 import type { UpdatePropertyPayload } from "@/features/fincas/types/fincas.types";
 import { MapPicker as MapPickerComponent } from "./map-picker";
 import {
@@ -59,6 +61,8 @@ export function PropertyCreateForm() {
   const router = useRouter();
   const createMutation = useCreateProperty();
   const { data: catalogs } = useCatalogs();
+  const { data: featuresCatalog, isLoading: isLoadingFeatures } = useFeatures();
+
   const [form, setForm] = useState<UpdatePropertyPayload>({
     title: "",
     description: "",
@@ -93,8 +97,9 @@ export function PropertyCreateForm() {
     fechaHasta: "",
     valorUnico: 0,
     activa: true,
+    descripcion: "",
   });
-  const [newFeature, setNewFeature] = useState("");
+
   useEffect(() => {
     if (createMutation.isSuccess) {
       sileo.success({ title: "¡Propiedad creada exitosamente!" });
@@ -130,6 +135,7 @@ export function PropertyCreateForm() {
       fechaHasta: "",
       valorUnico: 0,
       activa: true,
+      descripcion: "",
     });
   };
   const removePricingRule = (index: number) => {
@@ -146,21 +152,17 @@ export function PropertyCreateForm() {
       ),
     }));
   };
-  const addFeature = () => {
-    if (newFeature.trim()) {
-      setForm((prev) => ({
-        ...prev,
-        features: [...(prev.features || []), newFeature.trim()],
-      }));
-      setNewFeature("");
-    }
+
+  const toggleFeature = (featureName: string) => {
+    setForm((prev) => {
+      const currentFeatures = prev.features || [];
+      const newFeatures = currentFeatures.includes(featureName)
+        ? currentFeatures.filter((f) => f !== featureName)
+        : [...currentFeatures, featureName];
+      return { ...prev, features: newFeatures };
+    });
   };
-  const removeFeature = (index: number) => {
-    setForm((prev) => ({
-      ...prev,
-      features: prev.features?.filter((_, i) => i !== index),
-    }));
-  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
@@ -782,66 +784,27 @@ export function PropertyCreateForm() {
           </div>
         </section>
         {/* Features */}
-        <section className="rounded-[40px] bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-500">
-          <div className="flex items-center gap-4 px-6 md:px-8 py-5 md:py-7 border-b border-gray-50 bg-linear-to-br from-emerald-50/50 to-transparent">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-200">
+        <section className="rounded-[40px] bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-500">
+          <div className="flex items-center gap-4 px-6 md:px-8 py-5 md:py-7 border-b border-gray-50 bg-linear-to-br from-orange-50/50 to-transparent">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-200">
               <ListChecks className="w-5 h-5 md:w-6 md:h-6" />
             </div>
             <div>
               <h2 className="font-black text-lg md:text-xl text-gray-900 tracking-tight">
                 Características
               </h2>
-              <p className="text-[9px] md:text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-0.5">
-                {form.features?.length || 0} Amenidades registradas
+              <p className="text-[9px] md:text-[10px] font-black text-orange-400 uppercase tracking-widest mt-0.5">
+                {form.features?.length || 0} Amenidades seleccionadas
               </p>
             </div>
           </div>
-          <div className="p-6 md:p-8 space-y-6">
-            <div className="flex flex-wrap gap-3">
-              {form.features?.map((feature, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-50 border border-emerald-100 text-sm font-bold text-emerald-700 hover:border-emerald-300 transition-all duration-200"
-                >
-                  {feature}
-                  <button
-                    type="button"
-                    onClick={() => removeFeature(index)}
-                    className="text-emerald-300 hover:text-emerald-600 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </span>
-              ))}
-              {!form.features?.length && (
-                <div className="w-full py-10 border-2 border-dashed border-emerald-50 rounded-[32px] flex flex-col items-center justify-center text-emerald-200">
-                  <ListChecks className="w-10 h-10 mb-2 opacity-20" />
-                  <p className="text-[10px] font-black uppercase tracking-widest">
-                    Sin características vinculadas
-                  </p>
-                </div>
-              )}
-            </div>
-            <div className="flex gap-4 pt-2">
-              <input
-                type="text"
-                value={newFeature}
-                onChange={(e) => setNewFeature(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && (e.preventDefault(), addFeature())
-                }
-                placeholder="Agrega una nueva característica..."
-                className={`${inputClass} flex-1`}
-              />
-              <button
-                type="button"
-                onClick={addFeature}
-                disabled={!newFeature.trim()}
-                className="px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100 transition-all active:scale-95 disabled:opacity-20"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
-            </div>
+          <div className="p-6 md:p-8">
+            <FeaturePicker
+              selectedNames={form.features || []}
+              onToggle={toggleFeature}
+              catalog={featuresCatalog || []}
+              isLoading={isLoadingFeatures}
+            />
           </div>
         </section>
         {/* Catalog Selection */}

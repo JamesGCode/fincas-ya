@@ -1,15 +1,21 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { sileo } from "sileo";
 import {
   useProperty,
   useUpdateProperty,
+  useAddPropertyImage,
   useDeletePropertyImage,
+  useUploadPropertyVideo,
   useDeletePropertyVideo,
   useDeleteProperty,
   useCatalogs,
+  useLinkPropertyFeature,
+  useUnlinkPropertyFeature,
 } from "@/features/fincas/queries/fincas.queries";
+import { useFeatures } from "@/features/admin/queries/features.queries";
+import { FeaturePicker } from "./feature-picker";
 import type { UpdatePropertyPayload } from "@/features/fincas/types/fincas.types";
 import { MapPicker as MapPickerComponent } from "./map-picker";
 import {
@@ -61,8 +67,15 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   const deleteImageMutation = useDeletePropertyImage();
   const deleteVideoMutation = useDeletePropertyVideo();
   const deletePropertyMutation = useDeleteProperty();
+  const linkFeatureMutation = useLinkPropertyFeature();
+  const unlinkFeatureMutation = useUnlinkPropertyFeature();
   const { data: catalogs } = useCatalogs();
+  const { data: featuresCatalog, isLoading: isLoadingFeatures } = useFeatures();
   const router = useRouter();
+
+  // Initialization ref
+  const hasInitialized = useRef(false);
+  const initialFeatures = useRef<string[]>([]);
   const [form, setForm] = useState<UpdatePropertyPayload>({});
   const [enabledSeasons, setEnabledSeasons] = useState({
     baja: false,
@@ -75,8 +88,8 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
     fechaHasta: "",
     valorUnico: 0,
     activa: true,
+    descripcion: "",
   });
-  const [newFeature, setNewFeature] = useState("");
   // Multi-select state
   const [selectedImages, setSelectedImages] = useState<Set<number>>(new Set());
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
@@ -131,6 +144,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
         priceOriginal: property.priceOriginal || 0,
         isFavorite: property.isFavorite || false,
       });
+      initialFeatures.current = property.features || [];
       setEnabledSeasons({
         baja: !!(property.priceBaja || property.seasonPrices?.baja),
         media: !!(property.priceMedia || property.seasonPrices?.media),
@@ -141,8 +155,56 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updateMutation.mutateAsync({ id: propertyId, payload: form });
-    } catch (error) {}
+      const currentFeatures = form.features || [];
+      const toAdd = currentFeatures.filter(
+        (f) => !initialFeatures.current.includes(f),
+      );
+      const toRemove = initialFeatures.current.filter(
+        (f) => !currentFeatures.includes(f),
+      );
+
+      // 1. Unlink removed features
+      await Promise.all(
+        toRemove.map((featureName) => {
+          const catalogItem = featuresCatalog?.find(
+            (c) => c.name === featureName,
+          );
+          return unlinkFeatureMutation.mutateAsync({
+            id: propertyId,
+            name: featureName,
+            featureId: catalogItem?._id,
+          });
+        }),
+      );
+
+      // 2. Link added features
+      await Promise.all(
+        toAdd.map((featureName) => {
+          const catalogItem = featuresCatalog?.find(
+            (c) => c.name === featureName,
+          );
+          return linkFeatureMutation.mutateAsync({
+            id: propertyId,
+            name: featureName,
+            featureId: catalogItem?._id,
+          });
+        }),
+      );
+
+      // 3. Update main property (omitting features to avoid backend conflicts)
+      const { features, ...payloadWithoutFeatures } = form;
+      await updateMutation.mutateAsync({
+        id: propertyId,
+        payload: payloadWithoutFeatures,
+      });
+
+      // Update initial features ref after success
+      initialFeatures.current = currentFeatures;
+
+      sileo.success({ title: "¡Propiedad y características actualizadas!" });
+    } catch (error) {
+      sileo.error({ title: "Error al sincronizar cambios" });
+    }
   };
   const addPricingRule = () => {
     if (!newRule.nombre || !newRule.fechaDesde || !newRule.fechaHasta) {
@@ -159,6 +221,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       fechaHasta: "",
       valorUnico: 0,
       activa: true,
+      descripcion: "",
     });
   };
   const removePricingRule = (index: number) => {
@@ -175,22 +238,18 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       ),
     }));
   };
-  const addFeature = () => {
-    if (newFeature.trim()) {
-      setForm((prev) => ({
-        ...prev,
-        features: [...(prev.features || []), newFeature.trim()],
-      }));
-      setNewFeature("");
-    }
+
+  const toggleFeature = (featureName: string) => {
+    setForm((prev) => {
+      const currentFeatures = prev.features || [];
+      const newFeatures = currentFeatures.includes(featureName)
+        ? currentFeatures.filter((f) => f !== featureName)
+        : [...currentFeatures, featureName];
+      return { ...prev, features: newFeatures };
+    });
   };
-  const removeFeature = (index: number) => {
-    setForm((prev) => ({
-      ...prev,
-      features: prev.features?.filter((_, i) => i !== index),
-    }));
-  };
-  // Toggle individual image selection
+
+  // Image handlingvidual image selection
   const toggleImageSelection = (index: number) => {
     setSelectedImages((prev) => {
       const next = new Set(prev);
@@ -1056,66 +1115,27 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
           </div>
         </section>
         {/* Features */}
-        <section className="rounded-[40px] bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-500">
-          <div className="flex items-center gap-4 px-8 py-7 border-b border-gray-50 bg-linear-to-br from-emerald-50/50 to-transparent">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-200">
+        <section className="rounded-[40px] bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-500">
+          <div className="flex items-center gap-4 px-8 py-7 border-b border-gray-50 bg-linear-to-br from-orange-50/50 to-transparent">
+            <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-200">
               <ListChecks className="w-6 h-6" />
             </div>
             <div>
               <h2 className="font-black text-xl text-gray-900 tracking-tight">
                 Características & Amenidades
               </h2>
-              <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-0.5">
-                {form.features?.length || 0} Servicios destacados
+              <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest mt-0.5">
+                {form.features?.length || 0} Amenidades seleccionadas
               </p>
             </div>
           </div>
-          <div className="p-8 space-y-6">
-            <div className="flex flex-wrap gap-3">
-              {form.features?.map((feature, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gray-50 border border-gray-100 text-sm font-bold text-gray-700 group/tag hover:border-orange-200 hover:bg-orange-50/30 transition-all duration-200"
-                >
-                  {feature}
-                  <button
-                    type="button"
-                    onClick={() => removeFeature(index)}
-                    className="text-gray-300 hover:text-orange-600 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </span>
-              ))}
-              {!form.features?.length && (
-                <div className="w-full py-8 border-2 border-dashed border-gray-50 rounded-[24px] flex flex-col items-center justify-center text-gray-300">
-                  <ListChecks className="w-8 h-8 mb-2 opacity-20" />
-                  <p className="text-sm font-bold uppercase tracking-widest">
-                    Sin características
-                  </p>
-                </div>
-              )}
-            </div>
-            <div className="flex gap-3 pt-2">
-              <input
-                type="text"
-                value={newFeature}
-                onChange={(e) => setNewFeature(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && (e.preventDefault(), addFeature())
-                }
-                placeholder="Agrega una nueva característica..."
-                className={`${inputClass} flex-1`}
-              />
-              <button
-                type="button"
-                onClick={addFeature}
-                disabled={!newFeature.trim()}
-                className="px-6 rounded-2xl bg-gray-900 hover:bg-black text-white shadow-md transition-all active:scale-95 disabled:opacity-20"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
-            </div>
+          <div className="p-8">
+            <FeaturePicker
+              selectedNames={form.features || []}
+              onToggle={toggleFeature}
+              catalog={featuresCatalog || []}
+              isLoading={isLoadingFeatures}
+            />
           </div>
         </section>
         {/* Images */}

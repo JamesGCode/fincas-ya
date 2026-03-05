@@ -6,6 +6,8 @@ import { Heart, Star, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { PropertyResponse } from "@/features/fincas/types/fincas.types";
+import { useFeatures } from "@/features/admin/queries/features.queries";
+
 interface FincaCardHomeProps {
   finca: PropertyResponse;
   badge?: {
@@ -16,6 +18,7 @@ interface FincaCardHomeProps {
 export function FincaCardHome({ finca, badge }: FincaCardHomeProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
+  const { data: featuresCatalog } = useFeatures();
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -126,6 +129,34 @@ export function FincaCardHome({ finca, badge }: FincaCardHomeProps) {
           <MapPin className="w-3.5 h-3.5" />
           <span className="truncate">{finca.location}</span>
         </div>
+
+        {/* Feature Icons */}
+        {finca.features && finca.features.length > 0 && (
+          <div className="flex items-center gap-2 mb-2">
+            {finca.features.slice(0, 4).map((featureName, idx) => {
+              const catalogItem = featuresCatalog?.find(
+                (c) => c.name === featureName,
+              );
+              if (catalogItem?.iconUrl) {
+                return (
+                  <div
+                    key={idx}
+                    className="w-6 h-6 opacity-70 hover:opacity-100 transition-opacity"
+                    title={featureName}
+                  >
+                    <img
+                      src={catalogItem.iconUrl}
+                      alt={featureName}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                );
+              }
+              return null;
+            })}
+          </div>
+        )}
+
         <div className="flex items-center gap-1.5 text-sm">
           {finca.priceOriginal && finca.priceOriginal > 0 && (
             <span className="text-[11px] text-gray-400 line-through decoration-red-400/50 mr-0.5 italic">

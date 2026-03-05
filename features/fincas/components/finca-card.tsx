@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { PropertyResponse } from "@/features/fincas/types/fincas.types";
+import { useFeatures } from "@/features/admin/queries/features.queries";
+
 interface FincaCardProps {
   finca: PropertyResponse;
   index: number;
@@ -23,6 +25,8 @@ interface FincaCardProps {
 }
 export function FincaCard({ finca, index, badge }: FincaCardProps) {
   const [isFavorited, setIsFavorited] = useState(false);
+  const { data: featuresCatalog } = useFeatures();
+
   return (
     <div className="w-full">
       <Link href={`/fincas/${finca.id}`} className="block group">
@@ -91,6 +95,34 @@ export function FincaCard({ finca, index, badge }: FincaCardProps) {
                 <MapPin className="w-3.5 h-3.5" />
                 <span>{finca.location}</span>
               </div>
+
+              {/* Feature Icons */}
+              {finca.features && finca.features.length > 0 && (
+                <div className="flex items-center gap-2 mb-3">
+                  {finca.features.slice(0, 4).map((featureName, idx) => {
+                    const catalogItem = featuresCatalog?.find(
+                      (c) => c.name === featureName,
+                    );
+                    if (catalogItem?.iconUrl) {
+                      return (
+                        <div
+                          key={idx}
+                          className="w-6 h-6 opacity-70 hover:opacity-100 transition-opacity"
+                          title={featureName}
+                        >
+                          <img
+                            src={catalogItem.iconUrl}
+                            alt={featureName}
+                            className="w-full h-full object-contain filter invert"
+                          />
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              )}
+
               {/* Name and Price */}
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div className="flex-1 min-w-0">

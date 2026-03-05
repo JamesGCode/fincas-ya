@@ -3,6 +3,7 @@
 import { use } from "react";
 import { notFound } from "next/navigation";
 import { useProperty } from "@/features/fincas/queries/fincas.queries";
+import { useFeatures } from "@/features/admin/queries/features.queries";
 import { Navbar } from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ interface Props {
 export default function FincaDetailPage({ params }: Props) {
   const { id } = use(params);
   const { data: finca, isLoading, isError } = useProperty(id);
+  const { data: featuresCatalog } = useFeatures();
 
   if (isLoading) {
     return (
@@ -136,20 +138,33 @@ export default function FincaDetailPage({ params }: Props) {
                   <h2 className="text-xl font-bold mb-6">
                     Lo que este lugar ofrece
                   </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
-                    {finca.features?.map((feature, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-4 py-2 border-b border-border/40 last:border-0"
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-secondary/30 flex items-center justify-center shrink-0">
-                          <Check className="w-5 h-5 text-foreground" />
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-y-2 gap-x-6">
+                    {finca.features?.map((featureName, index) => {
+                      const catalogItem = featuresCatalog?.find(
+                        (c) => c.name === featureName,
+                      );
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center gap-3 py-2 transition-all hover:translate-x-1 duration-300"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-secondary/30 flex items-center justify-center shrink-0 p-2">
+                            {catalogItem?.iconUrl ? (
+                              <img
+                                src={catalogItem.iconUrl}
+                                alt={featureName}
+                                className="w-full h-full object-contain"
+                              />
+                            ) : (
+                              <Check className="w-4 h-4 text-foreground/50" />
+                            )}
+                          </div>
+                          <span className="text-sm font-medium text-foreground/80 truncate">
+                            {featureName}
+                          </span>
                         </div>
-                        <span className="text-base font-medium text-foreground/90">
-                          {feature}
-                        </span>
-                      </div>
-                    )) || <p>No features available</p>}
+                      );
+                    })}
                   </div>
                 </div>
                 {/* Informative Messages and Terms */}

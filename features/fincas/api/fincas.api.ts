@@ -26,6 +26,8 @@ export function normalizeProperty(p: any): PropertyResponse {
       alta: p.priceAlta ?? 0,
       rules: p.pricing || [],
     },
+    features:
+      p.features?.map((f: any) => (typeof f === "object" ? f.name : f)) || [],
   };
 }
 export const fetchProperties = async (
@@ -89,8 +91,15 @@ export const createProperty = async (
   const lng = payload.lng ?? coords?.lng;
   if (lat !== undefined) formData.append("lat", String(lat));
   if (lng !== undefined) formData.append("lng", String(lng));
-  if (payload.features) {
-    formData.append("features", JSON.stringify(payload.features));
+  if (payload.features && payload.features.length > 0) {
+    payload.features.forEach((feature) =>
+      formData.append("features[]", feature),
+    );
+  }
+  if (payload.catalogIds && payload.catalogIds.length > 0) {
+    payload.catalogIds.forEach((catId) =>
+      formData.append("catalogIds[]", catId),
+    );
   }
   if (payload.files) {
     payload.files.forEach((file) => formData.append("images", file));
@@ -144,8 +153,15 @@ export const updateProperty = async ({
   const lng = payload.lng ?? coords?.lng;
   if (lat !== undefined) formData.append("lat", String(lat));
   if (lng !== undefined) formData.append("lng", String(lng));
-  if (payload.features) {
-    formData.append("features", JSON.stringify(payload.features));
+  if (payload.features && payload.features.length > 0) {
+    payload.features.forEach((feature) =>
+      formData.append("features[]", feature),
+    );
+  }
+  if (payload.catalogIds && payload.catalogIds.length > 0) {
+    payload.catalogIds.forEach((catId) =>
+      formData.append("catalogIds[]", catId),
+    );
   }
   if (payload.files && payload.files.length > 0) {
     payload.files.forEach((file) => formData.append("images", file));
@@ -171,6 +187,28 @@ export const deletePropertyImage = async ({
   imageId: string;
 }): Promise<void> => {
   await api.delete(`/api/fincas/images/${imageId}`);
+};
+export const linkPropertyFeature = async ({
+  id,
+  name,
+  featureId,
+}: {
+  id: string;
+  name: string;
+  featureId?: string;
+}): Promise<void> => {
+  await api.post(`/api/fincas/${id}/features`, { name, featureId });
+};
+export const unlinkPropertyFeature = async ({
+  id,
+  name,
+  featureId,
+}: {
+  id: string;
+  name: string;
+  featureId?: string;
+}): Promise<void> => {
+  await api.post(`/api/fincas/${id}/features/unlink`, { name, featureId });
 };
 export const uploadPropertyVideo = async ({
   id,
