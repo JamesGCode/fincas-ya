@@ -28,6 +28,10 @@ export function normalizeProperty(p: any): PropertyResponse {
     },
     features:
       p.features?.map((f: any) => (typeof f === "object" ? f.name : f)) || [],
+    featureIds:
+      p.features
+        ?.map((f: any) => (typeof f === "object" ? f._id || f.id : null))
+        .filter(Boolean) || [],
   };
 }
 export const fetchProperties = async (

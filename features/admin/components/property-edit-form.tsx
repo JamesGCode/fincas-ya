@@ -139,12 +139,13 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
         files: [],
         videoFile: undefined,
         catalogIds: property.catalogIds || [],
+        featureIds: property.featureIds || [],
         visible: property.visible ?? true,
         reservable: property.reservable ?? true,
         priceOriginal: property.priceOriginal || 0,
         isFavorite: property.isFavorite || false,
       });
-      initialFeatures.current = property.features || [];
+      initialFeatures.current = property.featureIds || [];
       setEnabledSeasons({
         baja: !!(property.priceBaja || property.seasonPrices?.baja),
         media: !!(property.priceMedia || property.seasonPrices?.media),
@@ -152,54 +153,75 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       });
     }
   }, [property]);
+
+  // Map names to IDs once catalog is loaded (since API only returns names)
+  useEffect(() => {
+    if (
+      featuresCatalog &&
+      form.features &&
+      form.features.length > 0 &&
+      (!form.featureIds || form.featureIds.length === 0)
+    ) {
+      const mappedIds = form.features
+        .map((name) => featuresCatalog.find((c) => c.name === name)?._id)
+        .filter(Boolean) as string[];
+
+      if (mappedIds.length > 0) {
+        setForm((prev) => ({ ...prev, featureIds: mappedIds }));
+        if (!hasInitialized.current) {
+          initialFeatures.current = mappedIds;
+          hasInitialized.current = true;
+        }
+      }
+    }
+  }, [featuresCatalog, form.features]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const currentFeatures = form.features || [];
-      const toAdd = currentFeatures.filter(
-        (f) => !initialFeatures.current.includes(f),
+      const currentIds = form.featureIds || [];
+      const toAddIds = currentIds.filter(
+        (id) => !initialFeatures.current.includes(id),
       );
-      const toRemove = initialFeatures.current.filter(
-        (f) => !currentFeatures.includes(f),
+      const toRemoveIds = initialFeatures.current.filter(
+        (id) => !currentIds.includes(id),
       );
 
       // 1. Unlink removed features
       await Promise.all(
-        toRemove.map((featureName) => {
-          const catalogItem = featuresCatalog?.find(
-            (c) => c.name === featureName,
-          );
+        toRemoveIds.map((id) => {
+          const catalogItem = featuresCatalog?.find((c) => c._id === id);
+          if (!catalogItem) return Promise.resolve();
           return unlinkFeatureMutation.mutateAsync({
             id: propertyId,
-            name: featureName,
-            featureId: catalogItem?._id,
+            name: catalogItem.name,
+            featureId: id,
           });
         }),
       );
 
       // 2. Link added features
       await Promise.all(
-        toAdd.map((featureName) => {
-          const catalogItem = featuresCatalog?.find(
-            (c) => c.name === featureName,
-          );
+        toAddIds.map((id) => {
+          const catalogItem = featuresCatalog?.find((c) => c._id === id);
+          if (!catalogItem) return Promise.resolve();
           return linkFeatureMutation.mutateAsync({
             id: propertyId,
-            name: featureName,
-            featureId: catalogItem?._id,
+            name: catalogItem.name,
+            featureId: id,
           });
         }),
       );
 
-      // 3. Update main property (omitting features to avoid backend conflicts)
-      const { features, ...payloadWithoutFeatures } = form;
+      // 3. Update main property
+      const { features, catalogIds, featureIds, ...payloadWithoutFeatures } =
+        form;
       await updateMutation.mutateAsync({
         id: propertyId,
         payload: payloadWithoutFeatures,
       });
 
       // Update initial features ref after success
-      initialFeatures.current = currentFeatures;
+      initialFeatures.current = currentIds;
 
       sileo.success({ title: "¡Propiedad y características actualizadas!" });
     } catch (error) {
@@ -239,13 +261,25 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
     }));
   };
 
-  const toggleFeature = (featureName: string) => {
+  const toggleFeature = (featureId: string) => {
     setForm((prev) => {
-      const currentFeatures = prev.features || [];
-      const newFeatures = currentFeatures.includes(featureName)
-        ? currentFeatures.filter((f) => f !== featureName)
-        : [...currentFeatures, featureName];
-      return { ...prev, features: newFeatures };
+      const currentIds = prev.featureIds || [];
+      const isSelected = currentIds.includes(featureId);
+
+      const newIds = isSelected
+        ? currentIds.filter((id) => id !== featureId)
+        : [...currentIds, featureId];
+
+      // Derived names for features array (to keep compatibility if needed elsewhere)
+      const newNames = newIds
+        .map((id) => featuresCatalog?.find((c) => c._id === id)?.name)
+        .filter(Boolean) as string[];
+
+      return {
+        ...prev,
+        featureIds: newIds,
+        features: newNames,
+      };
     });
   };
 
@@ -533,8 +567,17 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
                     { value: "FINCA", label: "Finca" },
                     { value: "CASA_CAMPESTRE", label: "Casa Campestre" },
                     { value: "VILLA", label: "Villa" },
-                    { value: "CABAÑA", label: "Cabaña" },
-                    { value: "GLAMPING", label: "Glamping" },
+                    { value: "HACIENDA", label: "Hacienda" },
+                    { value: "QUINTA", label: "Quinta" },
+                    { value: "APARTAMENTO", label: "Apartamento" },
+                    { value: "CASA", label: "Casa" },
+                    { value: "CASA_PRIVADA", label: "Casa Privada" },
+                    {
+                      value: "CASA_EN_CONJUNTO_CERRADO",
+                      label: "Casa en Conjunto Cerrado",
+                    },
+                    { value: "VILLA_PRIVADA", label: "Villa Privada" },
+                    { value: "CONDOMINIO", label: "Condominio" },
                   ].map((t) => (
                     <option key={t.value} value={t.value}>
                       {t.label}
@@ -1131,7 +1174,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
           </div>
           <div className="p-8">
             <FeaturePicker
-              selectedNames={form.features || []}
+              selectedIds={form.featureIds || []}
               onToggle={toggleFeature}
               catalog={featuresCatalog || []}
               isLoading={isLoadingFeatures}

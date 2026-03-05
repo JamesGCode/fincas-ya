@@ -43,8 +43,14 @@ const PROPERTY_TYPES = [
   { value: "FINCA", label: "Finca" },
   { value: "CASA_CAMPESTRE", label: "Casa Campestre" },
   { value: "VILLA", label: "Villa" },
-  { value: "CABAÑA", label: "Cabaña" },
-  { value: "GLAMPING", label: "Glamping" },
+  { value: "HACIENDA", label: "Hacienda" },
+  { value: "QUINTA", label: "Quinta" },
+  { value: "APARTAMENTO", label: "Apartamento" },
+  { value: "CASA", label: "Casa" },
+  { value: "CASA_PRIVADA", label: "Casa Privada" },
+  { value: "CASA_EN_CONJUNTO_CERRADO", label: "Casa en Conjunto Cerrado" },
+  { value: "VILLA_PRIVADA", label: "Villa Privada" },
+  { value: "CONDOMINIO", label: "Condominio" },
 ];
 const PROPERTY_CATEGORIES = [
   { value: "ECONOMICA", label: "Económica" },
@@ -79,6 +85,7 @@ export function PropertyCreateForm() {
     lat: 0,
     lng: 0,
     features: [],
+    featureIds: [],
     files: [],
     catalogIds: [],
     visible: true,
@@ -114,6 +121,24 @@ export function PropertyCreateForm() {
       });
     }
   }, [createMutation.isError]);
+
+  // Sync IDs from names once catalog is loaded (if any default features are set)
+  useEffect(() => {
+    if (
+      featuresCatalog &&
+      form.features &&
+      form.features.length > 0 &&
+      (!form.featureIds || form.featureIds.length === 0)
+    ) {
+      const mappedIds = form.features
+        .map((name) => featuresCatalog.find((c) => c.name === name)?._id)
+        .filter(Boolean) as string[];
+
+      if (mappedIds.length > 0) {
+        setForm((prev) => ({ ...prev, featureIds: mappedIds }));
+      }
+    }
+  }, [featuresCatalog, form.features]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -153,13 +178,25 @@ export function PropertyCreateForm() {
     }));
   };
 
-  const toggleFeature = (featureName: string) => {
+  const toggleFeature = (featureId: string) => {
     setForm((prev) => {
-      const currentFeatures = prev.features || [];
-      const newFeatures = currentFeatures.includes(featureName)
-        ? currentFeatures.filter((f) => f !== featureName)
-        : [...currentFeatures, featureName];
-      return { ...prev, features: newFeatures };
+      const currentIds = prev.featureIds || [];
+      const isSelected = currentIds.includes(featureId);
+
+      const newIds = isSelected
+        ? currentIds.filter((id) => id !== featureId)
+        : [...currentIds, featureId];
+
+      // Derived names for features array (to keep compatibility if needed elsewhere)
+      const newNames = newIds
+        .map((id) => featuresCatalog?.find((c) => c._id === id)?.name)
+        .filter(Boolean) as string[];
+
+      return {
+        ...prev,
+        featureIds: newIds,
+        features: newNames,
+      };
     });
   };
 
@@ -800,7 +837,7 @@ export function PropertyCreateForm() {
           </div>
           <div className="p-6 md:p-8">
             <FeaturePicker
-              selectedNames={form.features || []}
+              selectedIds={form.featureIds || []}
               onToggle={toggleFeature}
               catalog={featuresCatalog || []}
               isLoading={isLoadingFeatures}

@@ -46,6 +46,7 @@ export interface PropertyResponse {
   lat?: number;
   lng?: number;
   catalogIds?: string[];
+  featureIds?: string[];
   coordinates: {
     lat: number;
     lng: number;
@@ -105,6 +106,7 @@ export interface UpdatePropertyPayload {
   lat?: number;
   lng?: number;
   catalogIds?: string[];
+  featureIds?: string[];
   features?: string[];
   video?: string;
   images?: string[];

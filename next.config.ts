@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "https://app.fincasya.cloud/api/:path*",
+        destination: "http://localhost:3001/api/:path*",
       },
     ];
   },

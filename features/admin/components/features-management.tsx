@@ -46,13 +46,17 @@ export function FeaturesManagement() {
     useState<FeatureCatalogItem | null>(null);
   const [deletingFeature, setDeletingFeature] =
     useState<FeatureCatalogItem | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // Create form
   const [newName, setNewName] = useState("");
+  const [newEmoji, setNewEmoji] = useState("");
   const [newIconFile, setNewIconFile] = useState<File | null>(null);
 
   // Edit form
   const [editName, setEditName] = useState("");
+  const [editEmoji, setEditEmoji] = useState("");
   const [editIconFile, setEditIconFile] = useState<File | null>(null);
 
   // Bulk
@@ -65,18 +69,23 @@ export function FeaturesManagement() {
 
   // ────── Create ──────
   const handleCreate = async () => {
-    if (!newName.trim() || !newIconFile) {
-      sileo.error({ title: "Nombre e icono SVG son requeridos" });
+    if (!newName.trim() && !newEmoji.trim() && !newIconFile) {
+      sileo.error({
+        title: "Datos insuficientes",
+        description: "Debes ingresar al menos un nombre, un emoji o un icono.",
+      });
       return;
     }
     try {
       await createMutation.mutateAsync({
-        name: newName.trim(),
-        icon: newIconFile,
+        name: newName.trim() || undefined,
+        emoji: newEmoji.trim() || undefined,
+        icon: newIconFile || undefined,
       });
       sileo.success({ title: "Feature creada exitosamente" });
       setShowCreateDialog(false);
       setNewName("");
+      setNewEmoji("");
       setNewIconFile(null);
     } catch {
       sileo.error({ title: "Error al crear la feature" });
@@ -108,7 +117,8 @@ export function FeaturesManagement() {
       await updateMutation.mutateAsync({
         id: editingFeature._id,
         payload: {
-          name: editName.trim() || undefined,
+          name: editName.trim(),
+          emoji: editEmoji.trim() || undefined,
           icon: editIconFile || undefined,
         },
       });
@@ -128,12 +138,71 @@ export function FeaturesManagement() {
       await deleteMutation.mutateAsync(deletingFeature._id);
       sileo.success({ title: "Feature eliminada" });
       setDeletingFeature(null);
+      setSelectedIds((prev) => prev.filter((id) => id !== deletingFeature._id));
     } catch {
       sileo.error({
         title: "No se pudo eliminar",
         description: "Puede estar vinculada a una finca.",
       });
       setDeletingFeature(null);
+    }
+  };
+
+  // ────── Bulk Delete ──────
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    setIsBulkDeleting(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      for (const id of selectedIds) {
+        try {
+          await deleteMutation.mutateAsync(id);
+          successCount++;
+        } catch {
+          failCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        sileo.success({
+          title: "Eliminación completada",
+          description: `${successCount} features eliminadas.${failCount > 0 ? ` ${failCount} fallaron.` : ""}`,
+        });
+      } else if (failCount > 0) {
+        sileo.error({
+          title: "Error al eliminar",
+          description: "Ninguna feature pudo ser eliminada.",
+        });
+      }
+      setSelectedIds([]);
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (!filteredFeatures) return;
+    const allVisibleIds = filteredFeatures.map((f) => f._id);
+    const allSelected = allVisibleIds.every((id) => selectedIds.includes(id));
+
+    if (allSelected) {
+      // Unselect only the currently visible ones
+      setSelectedIds((prev) =>
+        prev.filter((id) => !allVisibleIds.includes(id)),
+      );
+    } else {
+      // Add all visible ones to selection (avoiding duplicates)
+      setSelectedIds((prev) =>
+        Array.from(new Set([...prev, ...allVisibleIds])),
+      );
     }
   };
 
@@ -156,6 +225,20 @@ export function FeaturesManagement() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            {selectedIds.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                disabled={isBulkDeleting}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 font-bold text-sm hover:bg-red-100 transition-all shadow-sm disabled:opacity-50"
+              >
+                {isBulkDeleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                Eliminar ({selectedIds.length})
+              </button>
+            )}
             <button
               onClick={() => setShowBulkDialog(true)}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
@@ -165,7 +248,7 @@ export function FeaturesManagement() {
             </button>
             <button
               onClick={() => setShowCreateDialog(true)}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 active:scale-95"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 active:scale-95"
             >
               <Plus className="w-4 h-4" />
               Nueva Feature
@@ -173,24 +256,47 @@ export function FeaturesManagement() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar feature..."
-            className={`${inputClass} pl-11`}
-          />
-          {search && (
+        {/* Search & Selection */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar feature..."
+              className={`${inputClass} pl-11`}
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 text-gray-400"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 text-gray-400"
+              onClick={handleSelectAll}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-50 text-orange-600 font-bold text-xs hover:bg-orange-100 transition-all border border-orange-100"
             >
-              <X className="w-4 h-4" />
+              {filteredFeatures &&
+              filteredFeatures.length > 0 &&
+              filteredFeatures.every((f) => selectedIds.includes(f._id))
+                ? "Desmarcar Todos"
+                : "Seleccionar Todos"}
             </button>
-          )}
+            {selectedIds.length > 0 && (
+              <button
+                onClick={() => setSelectedIds([])}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 text-gray-400 font-bold text-xs hover:bg-gray-100 transition-all border border-gray-100"
+              >
+                Limpiar Selección
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Features Grid */}
@@ -208,30 +314,63 @@ export function FeaturesManagement() {
             {filteredFeatures.map((feature) => (
               <div
                 key={feature._id}
-                className="group relative flex flex-col items-center justify-center gap-3 p-6 rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 hover:border-emerald-100 transition-all duration-300"
+                onClick={() => toggleSelect(feature._id)}
+                className={`group relative flex flex-col items-center justify-center gap-3 p-6 rounded-3xl bg-white border transition-all duration-300 cursor-pointer ${
+                  selectedIds.includes(feature._id)
+                    ? "border-orange-500 shadow-xl shadow-orange-500/10 ring-2 ring-orange-500/20"
+                    : "border-gray-100 shadow-sm hover:shadow-xl hover:shadow-orange-500/5 hover:border-orange-100"
+                }`}
               >
+                {/* Selection indicator */}
+                <div
+                  className={`absolute top-4 left-4 w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${
+                    selectedIds.includes(feature._id)
+                      ? "bg-orange-500 border-orange-500"
+                      : "bg-white border-gray-200 opacity-0 group-hover:opacity-100"
+                  }`}
+                >
+                  {selectedIds.includes(feature._id) && (
+                    <div className="w-2 h-2 rounded-full bg-white" />
+                  )}
+                </div>
+
                 {/* Icon */}
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center p-2.5 group-hover:scale-110 transition-transform duration-300">
+                <div
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center p-2.5 transition-transform duration-300 group-hover:scale-110 ${
+                    selectedIds.includes(feature._id)
+                      ? "bg-orange-100 border-orange-200"
+                      : "bg-orange-50 border border-orange-100"
+                  }`}
+                >
                   {feature.iconUrl ? (
                     <img
                       src={feature.iconUrl}
                       alt={feature.name}
                       className="w-full h-full object-contain"
                     />
+                  ) : feature.emoji ? (
+                    <span className="text-3xl selection:bg-transparent">
+                      {feature.emoji}
+                    </span>
                   ) : (
-                    <Sparkles className="w-6 h-6 text-emerald-400" />
+                    <Sparkles className="w-6 h-6 text-orange-400" />
                   )}
                 </div>
                 {/* Name */}
-                <span className="text-sm font-bold text-gray-800 text-center leading-tight">
-                  {feature.name}
-                </span>
+                <h3 className="font-bold text-sm text-gray-900 text-center line-clamp-2 px-2">
+                  <span className="mr-1">{feature.emoji}</span>
+                  {feature.name || (
+                    <span className="text-gray-300 italic">Sin nombre</span>
+                  )}
+                </h3>
                 {/* Actions overlay */}
                 <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setEditingFeature(feature);
                       setEditName(feature.name);
+                      setEditEmoji(feature.emoji || "");
                       setEditIconFile(null);
                     }}
                     className="p-2 rounded-xl bg-white border border-gray-100 text-gray-400 hover:text-blue-600 hover:border-blue-200 shadow-sm transition-all"
@@ -240,7 +379,10 @@ export function FeaturesManagement() {
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => setDeletingFeature(feature)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeletingFeature(feature);
+                    }}
                     className="p-2 rounded-xl bg-white border border-gray-100 text-gray-400 hover:text-red-600 hover:border-red-200 shadow-sm transition-all"
                     title="Eliminar"
                   >
@@ -279,27 +421,47 @@ export function FeaturesManagement() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-5 py-4">
-            <div>
-              <label className={labelClass}>Nombre</label>
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className={inputClass}
-                placeholder="Ej: Piscina"
-              />
+            <div className="grid grid-cols-4 gap-4">
+              <div className="col-span-3">
+                <label className={labelClass}>Nombre</label>
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className={inputClass}
+                  placeholder="Ej: Piscina"
+                />
+              </div>
+              <div className="col-span-1">
+                <label className={labelClass}>Emoji</label>
+                <input
+                  type="text"
+                  value={newEmoji}
+                  onChange={(e) => setNewEmoji(e.target.value)}
+                  className={`${inputClass} text-center text-xl`}
+                  placeholder=""
+                  maxLength={2}
+                />
+              </div>
             </div>
             <div>
               <label className={labelClass}>Icono SVG</label>
-              <label className="flex flex-col items-center justify-center gap-2 w-full p-6 rounded-2xl border-2 border-dashed border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/30 cursor-pointer transition-all">
+              <label className="flex flex-col items-center justify-center gap-2 w-full p-6 rounded-2xl border-2 border-dashed border-gray-200 hover:border-orange-300 hover:bg-orange-50/30 cursor-pointer transition-all">
                 <input
                   type="file"
                   accept=".svg"
                   className="hidden"
-                  onChange={(e) => setNewIconFile(e.target.files?.[0] || null)}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    if (file && !file.name.toLowerCase().endsWith(".svg")) {
+                      sileo.error({ title: "El archivo debe ser .svg" });
+                      return;
+                    }
+                    setNewIconFile(file);
+                  }}
                 />
                 {newIconFile ? (
-                  <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm">
+                  <div className="flex items-center gap-2 text-orange-700 font-bold text-sm">
                     <ImageIcon className="w-5 h-5" />
                     {newIconFile.name}
                   </div>
@@ -321,7 +483,7 @@ export function FeaturesManagement() {
             <button
               onClick={handleCreate}
               disabled={createMutation.isPending}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all disabled:opacity-50"
             >
               {createMutation.isPending && (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -346,7 +508,7 @@ export function FeaturesManagement() {
           </AlertDialogHeader>
           <div className="py-4">
             <label
-              className="flex flex-col items-center justify-center gap-3 w-full p-8 rounded-2xl border-2 border-dashed border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/30 cursor-pointer transition-all"
+              className="flex flex-col items-center justify-center gap-3 w-full p-8 rounded-2xl border-2 border-dashed border-gray-200 hover:border-orange-300 hover:bg-orange-50/30 cursor-pointer transition-all"
               onClick={() => bulkInputRef.current?.click()}
             >
               <input
@@ -357,7 +519,10 @@ export function FeaturesManagement() {
                 className="hidden"
                 onChange={(e) => {
                   if (e.target.files) {
-                    setBulkFiles(Array.from(e.target.files));
+                    const files = Array.from(e.target.files).filter((f) =>
+                      f.name.toLowerCase().endsWith(".svg"),
+                    );
+                    setBulkFiles(files);
                   }
                 }}
               />
@@ -402,7 +567,7 @@ export function FeaturesManagement() {
             <button
               onClick={handleBulk}
               disabled={bulkMutation.isPending || bulkFiles.length === 0}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all disabled:opacity-50"
             >
               {bulkMutation.isPending && (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -428,20 +593,32 @@ export function FeaturesManagement() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-5 py-4">
-            <div>
-              <label className={labelClass}>Nombre</label>
-              <input
-                type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                className={inputClass}
-              />
+            <div className="grid grid-cols-4 gap-4">
+              <div className="col-span-3">
+                <label className={labelClass}>Nombre</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <div className="col-span-1">
+                <label className={labelClass}>Emoji</label>
+                <input
+                  type="text"
+                  value={editEmoji}
+                  onChange={(e) => setEditEmoji(e.target.value)}
+                  className={`${inputClass} text-center text-xl`}
+                  maxLength={2}
+                />
+              </div>
             </div>
             <div>
               <label className={labelClass}>
-                Icono SVG (opcional, reemplaza el actual)
+                Icono SVG (Opcional, reemplaza el actual)
               </label>
-              <label className="flex flex-col items-center justify-center gap-2 w-full p-6 rounded-2xl border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50/30 cursor-pointer transition-all">
+              <label className="flex flex-col items-center justify-center gap-2 w-full p-6 rounded-2xl border-2 border-dashed border-gray-200 hover:border-orange-300 hover:bg-orange-50/30 cursor-pointer transition-all">
                 <input
                   type="file"
                   accept=".svg"
@@ -449,7 +626,7 @@ export function FeaturesManagement() {
                   onChange={(e) => setEditIconFile(e.target.files?.[0] || null)}
                 />
                 {editIconFile ? (
-                  <div className="flex items-center gap-2 text-blue-700 font-bold text-sm">
+                  <div className="flex items-center gap-2 text-orange-700 font-bold text-sm">
                     <ImageIcon className="w-5 h-5" />
                     {editIconFile.name}
                   </div>
@@ -471,7 +648,7 @@ export function FeaturesManagement() {
             <button
               onClick={handleUpdate}
               disabled={updateMutation.isPending}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all disabled:opacity-50"
             >
               {updateMutation.isPending && (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -503,7 +680,7 @@ export function FeaturesManagement() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
+              className="bg-red-600! hover:bg-red-700! text-white rounded-xl"
             >
               {deleteMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

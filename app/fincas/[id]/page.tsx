@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { ReservationCard } from "@/features/fincas/components/reservation-card";
 import { HeroGallery } from "@/features/fincas/components/hero-gallery";
 import { GuestFavorite } from "@/features/fincas/components/guest-favorite";
-import { cn } from "@/lib/utils";
+import { cn, getSeededRating } from "@/lib/utils";
 import { MapPin, Users, Star, Check, MessageCircle, Play } from "lucide-react";
 import { ReviewsSection } from "@/features/reviews/components/reviews-section";
 import { FincaMap } from "@/features/fincas/components/finca-map";
@@ -77,7 +77,7 @@ export default function FincaDetailPage({ params }: Props) {
                   <div className="flex flex-wrap items-center gap-3 mb-4 mt-2 md:mt-8">
                     <Badge variant="secondary" className="gap-1">
                       <Star className="w-3 h-3 fill-current" />
-                      {finca.rating || 0}
+                      {getSeededRating(finca.id)}
                     </Badge>
                     <Badge variant="outline" className="gap-1">
                       <MapPin className="w-3 h-3" />
@@ -148,13 +148,17 @@ export default function FincaDetailPage({ params }: Props) {
                           key={index}
                           className="flex items-center gap-3 py-2 transition-all hover:translate-x-1 duration-300"
                         >
-                          <div className="w-10 h-10 rounded-xl bg-secondary/30 flex items-center justify-center shrink-0 p-2">
+                          <div className="w-10 h-10 rounded-xl bg-secondary/30 flex items-center justify-center shrink-0 p-2 overflow-hidden">
                             {catalogItem?.iconUrl ? (
                               <img
                                 src={catalogItem.iconUrl}
                                 alt={featureName}
                                 className="w-full h-full object-contain"
                               />
+                            ) : catalogItem?.emoji ? (
+                              <span className="text-2xl selection:bg-transparent">
+                                {catalogItem.emoji}
+                              </span>
                             ) : (
                               <Check className="w-4 h-4 text-foreground/50" />
                             )}

@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { PropertyResponse } from "@/features/fincas/types/fincas.types";
 import { useFeatures } from "@/features/admin/queries/features.queries";
+import { getSeededRating } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 interface FincaCardHomeProps {
   finca: PropertyResponse;
@@ -119,7 +121,9 @@ export function FincaCardHome({ finca, badge }: FincaCardHomeProps) {
           </h3>
           <div className="flex items-center gap-1 shrink-0">
             <Star className="w-3.5 h-3.5 fill-black text-black" />
-            <span className="text-sm font-medium">3.8</span>
+            <span className="text-sm font-medium">
+              {getSeededRating(finca.id)}
+            </span>
             <span className="text-sm text-gray-500">
               ({finca.reviewsCount})
             </span>
@@ -130,32 +134,33 @@ export function FincaCardHome({ finca, badge }: FincaCardHomeProps) {
           <span className="truncate">{finca.location}</span>
         </div>
 
-        {/* Feature Icons */}
-        {finca.features && finca.features.length > 0 && (
-          <div className="flex items-center gap-2 mb-2">
-            {finca.features.slice(0, 4).map((featureName, idx) => {
-              const catalogItem = featuresCatalog?.find(
-                (c) => c.name === featureName,
-              );
-              if (catalogItem?.iconUrl) {
-                return (
-                  <div
-                    key={idx}
-                    className="w-6 h-6 opacity-70 hover:opacity-100 transition-opacity"
-                    title={featureName}
-                  >
-                    <img
-                      src={catalogItem.iconUrl}
-                      alt={featureName}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                );
-              }
-              return null;
-            })}
-          </div>
-        )}
+        {/* Feature Icons (Only SVG icons) */}
+        {(() => {
+          const featuresWithIcons = finca.features
+            ?.map((name) => featuresCatalog?.find((c) => c.name === name))
+            .filter((c) => !!c?.iconUrl)
+            .slice(0, 4);
+
+          if (!featuresWithIcons || featuresWithIcons.length === 0) return null;
+
+          return (
+            <div className="flex items-center gap-2 mb-2">
+              {featuresWithIcons.map((catalogItem, idx) => (
+                <div
+                  key={idx}
+                  className="w-6 h-6 flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+                  title={catalogItem?.name}
+                >
+                  <img
+                    src={catalogItem?.iconUrl}
+                    alt={catalogItem?.name}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         <div className="flex items-center gap-1.5 text-sm">
           {finca.priceOriginal && finca.priceOriginal > 0 && (

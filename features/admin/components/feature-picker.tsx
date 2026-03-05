@@ -15,14 +15,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { FeatureCatalogItem } from "../types/features.types";
 
 interface FeaturePickerProps {
-  selectedNames: string[];
-  onToggle: (name: string) => void;
+  selectedIds: string[];
+  onToggle: (id: string) => void;
   catalog: FeatureCatalogItem[];
   isLoading?: boolean;
 }
 
 export function FeaturePicker({
-  selectedNames,
+  selectedIds,
   onToggle,
   catalog,
   isLoading,
@@ -34,7 +34,7 @@ export function FeaturePicker({
   );
 
   const selectedFeatures = catalog.filter((item) =>
-    selectedNames.includes(item.name),
+    selectedIds.includes(item._id),
   );
 
   return (
@@ -53,17 +53,25 @@ export function FeaturePicker({
             >
               <button
                 type="button"
-                onClick={() => onToggle(feature.name)}
+                onClick={() => onToggle(feature._id)}
                 className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-orange-100 text-orange-500 shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 hover:text-red-500 hover:border-red-100"
               >
                 <X className="w-3 h-3" />
               </button>
-              <div className="w-8 h-8 rounded-lg bg-white p-1.5 mb-1 shadow-xs ring-1 ring-orange-100/50">
-                <img
-                  src={feature.iconUrl}
-                  alt={feature.name}
-                  className="w-full h-full object-contain"
-                />
+              <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-1.5 mb-1 shadow-xs ring-1 ring-orange-100/50 overflow-hidden">
+                {feature.iconUrl ? (
+                  <img
+                    src={feature.iconUrl}
+                    alt={feature.name}
+                    className="w-full h-full object-contain"
+                  />
+                ) : feature.emoji ? (
+                  <span className="text-xl selection:bg-transparent">
+                    {feature.emoji}
+                  </span>
+                ) : (
+                  <div className="w-full h-full bg-orange-50" />
+                )}
               </div>
               <span className="text-[10px] font-black uppercase tracking-wider text-center leading-tight truncate w-full px-1">
                 {feature.name}
@@ -74,7 +82,7 @@ export function FeaturePicker({
       </div>
 
       {/* Main Trigger Button */}
-      <Dialog>
+      <Dialog onOpenChange={(open) => !open && setSearch("")}>
         <DialogTrigger asChild>
           <Button
             type="button"
@@ -87,7 +95,7 @@ export function FeaturePicker({
                 <Plus className="w-4 h-4" />
               </div>
               <span className="font-black text-[11px] uppercase tracking-widest">
-                Gestionar Amenidades ({selectedNames.length})
+                Gestionar Amenidades ({selectedIds.length})
               </span>
             </div>
           </Button>
@@ -124,12 +132,12 @@ export function FeaturePicker({
             ) : filteredCatalog.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {filteredCatalog.map((feature) => {
-                  const isSelected = selectedNames.includes(feature.name);
+                  const isSelected = selectedIds.includes(feature._id);
                   return (
                     <button
                       key={feature._id}
                       type="button"
-                      onClick={() => onToggle(feature.name)}
+                      onClick={() => onToggle(feature._id)}
                       className={`relative flex flex-col items-center justify-center p-4 rounded-3xl border-2 transition-all duration-300 text-center gap-2 group
                         ${
                           isSelected
@@ -144,15 +152,23 @@ export function FeaturePicker({
                         </div>
                       )}
                       <div
-                        className={`w-12 h-12 rounded-2xl flex items-center justify-center p-2.5 transition-all duration-500
+                        className={`w-12 h-12 rounded-2xl flex items-center justify-center p-2.5 transition-all duration-500 overflow-hidden
                         ${isSelected ? "bg-orange-100/50 shadow-inner" : "bg-gray-50 group-hover:bg-white group-hover:shadow-sm"}
                       `}
                       >
-                        <img
-                          src={feature.iconUrl}
-                          alt={feature.name}
-                          className="w-full h-full object-contain"
-                        />
+                        {feature.iconUrl ? (
+                          <img
+                            src={feature.iconUrl}
+                            alt={feature.name}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : feature.emoji ? (
+                          <span className="text-2xl selection:bg-transparent">
+                            {feature.emoji}
+                          </span>
+                        ) : (
+                          <div className="w-full h-full bg-orange-50/20" />
+                        )}
                       </div>
                       <span className="font-black text-[10px] uppercase tracking-wider leading-tight">
                         {feature.name}

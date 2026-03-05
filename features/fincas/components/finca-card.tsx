@@ -8,8 +8,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, MapPin, Users, Star } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Heart, MapPin, Users, Star, Check } from "lucide-react";
+import { cn, getSeededRating } from "@/lib/utils";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { PropertyResponse } from "@/features/fincas/types/fincas.types";
@@ -96,37 +96,45 @@ export function FincaCard({ finca, index, badge }: FincaCardProps) {
                 <span>{finca.location}</span>
               </div>
 
-              {/* Feature Icons */}
-              {finca.features && finca.features.length > 0 && (
-                <div className="flex items-center gap-2 mb-3">
-                  {finca.features.slice(0, 4).map((featureName, idx) => {
-                    const catalogItem = featuresCatalog?.find(
-                      (c) => c.name === featureName,
-                    );
-                    if (catalogItem?.iconUrl) {
-                      return (
-                        <div
-                          key={idx}
-                          className="w-6 h-6 opacity-70 hover:opacity-100 transition-opacity"
-                          title={featureName}
-                        >
-                          <img
-                            src={catalogItem.iconUrl}
-                            alt={featureName}
-                            className="w-full h-full object-contain filter invert"
-                          />
-                        </div>
-                      );
-                    }
-                    return null;
-                  })}
-                </div>
-              )}
+              {/* Feature Icons (Only SVG icons) */}
+              {(() => {
+                const featuresWithIcons = finca.features
+                  ?.map((name) => featuresCatalog?.find((c) => c.name === name))
+                  .filter((c) => !!c?.iconUrl)
+                  .slice(0, 4);
+
+                if (!featuresWithIcons || featuresWithIcons.length === 0)
+                  return null;
+
+                return (
+                  <div className="flex items-center gap-2 mb-3">
+                    {featuresWithIcons.map((catalogItem, idx) => (
+                      <div
+                        key={idx}
+                        className="w-6 h-6 flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+                        title={catalogItem?.name}
+                      >
+                        <img
+                          src={catalogItem?.iconUrl}
+                          alt={catalogItem?.name}
+                          className="w-full h-full object-contain filter invert"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* Name and Price */}
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-base font-semibold line-clamp-1">
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      <span className="text-[10px] text-muted-foreground">
+                        {getSeededRating(finca.id)}
+                      </span>
+                    </div>
                     {finca.title}
                   </CardTitle>
                   <CardDescription className="text-xs line-clamp-1 mt-1">
