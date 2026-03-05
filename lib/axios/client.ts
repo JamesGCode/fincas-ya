@@ -5,6 +5,7 @@ const BACKEND_URL = "https://app.fincasya.cloud";
 
 const api = axios.create({
   baseURL: isServer ? BACKEND_URL : "",
+  // baseURL: "http://localhost:3001",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
