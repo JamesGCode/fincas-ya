@@ -34,6 +34,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "https://app.fincasya.cloud/api/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
