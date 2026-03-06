@@ -64,7 +64,7 @@ export function FeaturesManagement() {
   const bulkInputRef = useRef<HTMLInputElement>(null);
 
   const filteredFeatures = features?.filter((f) =>
-    f.name.toLowerCase().includes(search.toLowerCase()),
+    (f.name ?? "").toLowerCase().includes(search.toLowerCase()),
   );
 
   // ────── Create ──────

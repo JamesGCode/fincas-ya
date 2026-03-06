@@ -89,7 +89,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body
         className={`${degular.variable} ${dmSans.variable} ${degular.className} antialiased bg-background text-foreground font-sans`}
       >
