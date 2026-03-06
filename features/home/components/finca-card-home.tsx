@@ -2,13 +2,22 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Heart, Star, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, Star, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PropertyResponse } from "@/features/fincas/types/fincas.types";
 import { useFeatures } from "@/features/admin/queries/features.queries";
 import { getSeededRating } from "@/lib/utils";
 import { Check } from "lucide-react";
+
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 interface FincaCardHomeProps {
   finca: PropertyResponse;
@@ -18,50 +27,59 @@ interface FincaCardHomeProps {
   };
 }
 export function FincaCardHome({ finca, badge }: FincaCardHomeProps) {
+  const [api, setApi] = useState<CarouselApi>();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
   const { data: featuresCatalog } = useFeatures();
-  const nextImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev + 1) % (finca.images?.length || 1));
-  };
-  const prevImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentImageIndex(
-      (prev) =>
-        (prev - 1 + (finca.images?.length || 1)) % (finca.images?.length || 1),
-    );
-  };
+
+  useEffect(() => {
+    if (!api) return;
+
+    setCurrentImageIndex(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrentImageIndex(api.selectedScrollSnap());
+    });
+  }, [api]);
+
   return (
     <div className="group w-full block border border-gray-200 rounded-3xl p-4 hover:shadow-lg transition-all duration-300">
       <div className="relative aspect-4/3 rounded-2xl overflow-hidden mb-4">
         {/* Image Carousel */}
-        <Link href={`/fincas/${finca.id}`}>
-          <Image
-            src={finca.images?.[currentImageIndex] || "/placeholder.jpg"}
-            alt={finca.title || "Finca"}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        </Link>
-        {/* Navigation Arrows (Visible on Hover) */}
-        <button
-          onClick={prevImage}
-          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        <Carousel
+          setApi={setApi}
+          opts={{ loop: true }}
+          className="w-full h-full"
         >
-          <ChevronLeft className="w-4 h-4 text-gray-900" />
-        </button>
-        <button
-          onClick={nextImage}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-        >
-          <ChevronRight className="w-4 h-4 text-gray-900" />
-        </button>
+          <CarouselContent className="h-full ml-0">
+            {(finca.images || ["/placeholder.jpg"]).map((image, index) => (
+              <CarouselItem key={index} className="pl-0 h-full w-full">
+                <Link
+                  href={`/fincas/${finca.id}`}
+                  className="block w-full h-full"
+                >
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={image}
+                      alt={finca.title || "Finca"}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      priority={index === 0}
+                    />
+                  </div>
+                </Link>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+
+          {/* Navigation Arrows (Visible on Hover) */}
+          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 border-none shadow-sm h-8 w-8" />
+          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 border-none shadow-sm h-8 w-8" />
+        </Carousel>
+
         {/* Dots Indicator */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-          {(finca.images || []).slice(0, 5).map((_, idx) => (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 pointer-events-none">
+          {(finca.images || []).map((_, idx) => (
             <div
               key={idx}
               className={cn(
