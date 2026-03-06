@@ -51,6 +51,7 @@ const PROPERTY_TYPES = [
   { value: "CASA_EN_CONJUNTO_CERRADO", label: "Casa en Conjunto Cerrado" },
   { value: "VILLA_PRIVADA", label: "Villa Privada" },
   { value: "CONDOMINIO", label: "Condominio" },
+  { value: "YATE", label: "Yate" },
 ];
 const PROPERTY_CATEGORIES = [
   { value: "ECONOMICA", label: "Económica" },

@@ -578,6 +578,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
                     },
                     { value: "VILLA_PRIVADA", label: "Villa Privada" },
                     { value: "CONDOMINIO", label: "Condominio" },
+                    { value: "YATE", label: "Yate" },
                   ].map((t) => (
                     <option key={t.value} value={t.value}>
                       {t.label}
