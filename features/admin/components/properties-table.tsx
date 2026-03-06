@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Pencil, MapPin, Users, Trash2, Loader2 } from "lucide-react";
+import { Pencil, MapPin, Users, Trash2, Loader2, Video } from "lucide-react";
 import { useDeleteProperty } from "@/features/fincas/queries/fincas.queries";
 import type { PropertyResponse } from "@/features/fincas/types/fincas.types";
 import { useState } from "react";
@@ -183,6 +183,12 @@ export function PropertiesTable({
                 {property.rating > 4.5 && (
                   <span className="text-[9px] font-black text-white bg-amber-500 px-2 py-0.5 rounded-full tracking-widest uppercase shadow-sm shadow-amber-200">
                     Premium
+                  </span>
+                )}
+                {property.video && (
+                  <span className="text-[9px] font-black text-white bg-red-500 px-2 py-0.5 rounded-full tracking-widest uppercase shadow-sm shadow-red-200 flex items-center gap-1">
+                    <Video className="w-2 h-2" />
+                    Video
                   </span>
                 )}
               </div>

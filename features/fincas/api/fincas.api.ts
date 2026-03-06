@@ -90,6 +90,7 @@ export const createProperty = async (
   if (payload.pricing) {
     formData.append("pricing", JSON.stringify(payload.pricing));
   }
+  if (payload.video !== undefined) formData.append("video", payload.video);
   const coords = payload.coordinates;
   const lat = payload.lat ?? coords?.lat;
   const lng = payload.lng ?? coords?.lng;
@@ -107,6 +108,9 @@ export const createProperty = async (
   }
   if (payload.files) {
     payload.files.forEach((file) => formData.append("images", file));
+  }
+  if (payload.videoFile) {
+    formData.append("video", payload.videoFile);
   }
   const { data } = await api.post("/api/fincas", formData);
   return normalizeProperty(data);
@@ -152,6 +156,7 @@ export const updateProperty = async ({
   if (payload.pricing) {
     formData.append("pricing", JSON.stringify(payload.pricing));
   }
+  if (payload.video !== undefined) formData.append("video", payload.video);
   const coords = payload.coordinates;
   const lat = payload.lat ?? coords?.lat;
   const lng = payload.lng ?? coords?.lng;
@@ -169,6 +174,9 @@ export const updateProperty = async ({
   }
   if (payload.files && payload.files.length > 0) {
     payload.files.forEach((file) => formData.append("images", file));
+  }
+  if (payload.videoFile) {
+    formData.append("video", payload.videoFile);
   }
   const { data } = await api.put(`/api/fincas/${id}`, formData);
   return normalizeProperty(data);

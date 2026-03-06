@@ -137,6 +137,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
         imageItems: property.imageItems,
         features: property.features || [],
         files: [],
+        video: property.video,
         videoFile: undefined,
         catalogIds: property.catalogIds || [],
         featureIds: property.featureIds || [],
@@ -217,7 +218,10 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
         form;
       await updateMutation.mutateAsync({
         id: propertyId,
-        payload: payloadWithoutFeatures,
+        payload: {
+          ...payloadWithoutFeatures,
+          videoFile: form.videoFile, // Explicitly ensure videoFile is passed
+        },
       });
 
       // Update initial features ref after success
@@ -377,7 +381,16 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   };
   const confirmDeleteVideo = async () => {
     try {
-      await deleteVideoMutation.mutateAsync({ id: propertyId });
+      // If specialized delete fails (404), fallback to updating the field to empty
+      try {
+        await deleteVideoMutation.mutateAsync({ id: propertyId });
+      } catch (e) {
+        console.warn("Specialized delete failed, trying fallback update", e);
+        await updateMutation.mutateAsync({
+          id: propertyId,
+          payload: { video: "" },
+        });
+      }
       setForm((prev) => ({ ...prev, video: "" }));
       sileo.success({ title: "Video eliminado correctamente" });
     } catch (error) {
@@ -1407,7 +1420,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
           </div>
         </section>
         {/* Botón de guardar */}
-        <div className="sticky bottom-4 z-[9999] px-6 py-4 bg-white/60 backdrop-blur-2xl border border-white/40 rounded-3xl shadow-2xl shadow-orange-500/20">
+        <div className="sticky bottom-4 z-9999 px-6 py-4 bg-white/60 backdrop-blur-2xl border border-white/40 rounded-3xl shadow-2xl shadow-orange-500/20">
           <button
             type="submit"
             disabled={updateMutation.isPending}
