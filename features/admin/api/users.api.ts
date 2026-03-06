@@ -2,6 +2,7 @@ import api from "@/lib/axios/client";
 
 export interface User {
   id: string;
+  _id?: string; // Convex ID fallback
   email: string;
   name: string;
   role: "admin" | "user" | "editor" | "owner";

@@ -52,6 +52,7 @@ const PROPERTY_TYPES = [
   { value: "VILLA_PRIVADA", label: "Villa Privada" },
   { value: "CONDOMINIO", label: "Condominio" },
   { value: "YATE", label: "Yate" },
+  { value: "ISLA", label: "Isla" },
 ];
 const PROPERTY_CATEGORIES = [
   { value: "ECONOMICA", label: "Económica" },

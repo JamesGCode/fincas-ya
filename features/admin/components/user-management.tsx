@@ -22,6 +22,8 @@ import {
   createUser,
   User,
 } from "../api/users.api";
+import { DicebearAvatar } from "@/features/inbox/components/dicebear-avatar";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +45,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { sileo } from "sileo";
+import { getErrorMessage } from "@/lib/error-utils";
 
 interface UserManagementProps {
   searchTerm?: string;
@@ -94,7 +97,8 @@ export function UserManagement({
     setIsUpdating(true);
     try {
       const formData = new FormData(e.currentTarget);
-      await updateUser(editingUser.id, {
+      const userId = editingUser.id || (editingUser as any)._id;
+      await updateUser(userId, {
         name: formData.get("name") as string,
         role: formData.get("role") as User["role"],
         phone: formData.get("phone") as string,
@@ -106,7 +110,10 @@ export function UserManagement({
       fetchUsers();
     } catch (error) {
       console.error(error);
-      sileo.error({ title: "Error al actualizar usuario" });
+      sileo.error({
+        title: "Error al actualizar usuario",
+        description: getErrorMessage(error),
+      });
     } finally {
       setIsUpdating(false);
     }
@@ -131,7 +138,10 @@ export function UserManagement({
       fetchUsers();
     } catch (error) {
       console.error(error);
-      sileo.error({ title: "Error al crear usuario" });
+      sileo.error({
+        title: "Error al crear usuario",
+        description: getErrorMessage(error),
+      });
     } finally {
       setIsCreating(false);
     }
@@ -141,23 +151,35 @@ export function UserManagement({
     if (!deletingUser) return;
     setIsDeleting(true);
     try {
-      await deleteUser(deletingUser.id);
+      const userId = deletingUser.id || (deletingUser as any)._id;
+      await deleteUser(userId);
       sileo.success({ title: "Usuario eliminado correctamente" });
       setDeletingUser(null);
       fetchUsers();
     } catch (error) {
       console.error(error);
-      sileo.error({ title: "Error al eliminar usuario" });
+      sileo.error({
+        title: "Error al eliminar usuario",
+        description: getErrorMessage(error),
+      });
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
+  const { user: currentUser } = useAuthStore();
+
+  const filteredUsers = users.filter((user) => {
+    // Ocultar al usuario actual de la lista
+    const userId = user.id || (user as any)._id;
+    const currentUserId = currentUser?.id || (currentUser as any)?._id;
+    if (userId && currentUserId && userId === currentUserId) return false;
+
+    return (
       user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   const getRoleBadge = (role: User["role"]) => {
     switch (role) {
@@ -231,7 +253,7 @@ export function UserManagement({
   return (
     <>
       {/* Table Header */}
-      <div className="hidden md:grid grid-cols-[64px_2fr_1.5fr_1.5fr_100px] gap-4 px-8 py-5 bg-linear-to-r from-gray-50/50 via-gray-50/30 to-transparent border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+      <div className="hidden md:grid grid-cols-[64px_2fr_1.5fr_1.5fr_100px] gap-4 px-8 py-5 bg-gray-100/75 border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
         <span>Perfil</span>
         <span>Nombre & Email</span>
         <span>Rol & Cargo</span>
@@ -244,13 +266,17 @@ export function UserManagement({
         {filteredUsers.map((user) => (
           <div
             key={user.id || (user as any)._id || user.email}
-            className="flex flex-col md:grid md:grid-cols-[64px_2fr_1.5fr_1.5fr_100px] gap-4 md:gap-4 items-start md:items-center px-6 md:px-8 py-6 hover:bg-orange-50/30 transition-all group relative border-l-4 border-l-transparent hover:border-l-orange-500"
+            onClick={() => setEditingUser(user)}
+            className="flex flex-col md:grid md:grid-cols-[64px_2fr_1.5fr_1.5fr_100px] gap-4 md:gap-4 items-start md:items-center px-6 md:px-8 py-6 hover:bg-orange-50/30 transition-all group relative border-l-4 border-l-transparent hover:border-l-orange-500 cursor-pointer"
           >
             {/* ── Mobile: top row ── */}
             <div className="flex w-full md:hidden gap-4 items-center mb-1">
-              <div className="w-12 h-12 rounded-full shrink-0 bg-gray-100 text-gray-600 font-black text-sm uppercase flex items-center justify-center shadow-sm ring-1 ring-gray-100">
-                {user.name?.charAt(0) || user.email.charAt(0)}
-              </div>
+              <DicebearAvatar
+                seed={user.name || user.email}
+                variant="initials"
+                size={40}
+                fontSize={35}
+              />
               <div className="flex-1 min-w-0">
                 <span className="font-black text-sm text-gray-900 truncate block tracking-tight leading-tight">
                   {user.name || "Sin nombre"}
@@ -260,7 +286,10 @@ export function UserManagement({
                 </div>
               </div>
               <button
-                onClick={() => setEditingUser(user)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingUser(user);
+                }}
                 className="w-10 h-10 flex items-center justify-center rounded-xl text-orange-500 bg-orange-50 shadow-sm active:scale-95 shrink-0"
               >
                 <Pencil className="w-4 h-4" />
@@ -268,9 +297,13 @@ export function UserManagement({
             </div>
 
             {/* ── Desktop: Avatar ── */}
-            <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 hidden md:flex items-center justify-center font-black text-base uppercase bg-gray-100 text-gray-600 group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors duration-300">
-              {user.name?.charAt(0) || user.email.charAt(0)}
-            </div>
+            <DicebearAvatar
+              seed={user.name || user.email}
+              variant="initials"
+              size={40}
+              fontSize={35}
+              className="hidden md:flex group-hover:scale-110 transition-transform duration-300"
+            />
 
             {/* ── Name & Email ── */}
             <div className="min-w-0 hidden md:block">
@@ -315,13 +348,19 @@ export function UserManagement({
             {/* ── Desktop Actions ── */}
             <div className="hidden md:flex justify-end gap-2 pr-2">
               <button
-                onClick={() => setEditingUser(user)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingUser(user);
+                }}
                 className="w-11 h-11 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-orange-500 transition-all opacity-0 group-hover:opacity-100 shadow-sm hover:shadow-lg hover:shadow-orange-200 active:scale-95"
               >
                 <Pencil className="w-5 h-5" />
               </button>
               <button
-                onClick={() => setDeletingUser(user)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeletingUser(user);
+                }}
                 className="w-11 h-11 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-red-500 transition-all opacity-0 group-hover:opacity-100 shadow-sm hover:shadow-lg hover:shadow-red-200 active:scale-95 cursor-pointer"
               >
                 <Trash2 className="w-5 h-5" />
@@ -338,7 +377,7 @@ export function UserManagement({
       >
         <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden border-none rounded-3xl shadow-2xl">
           <form onSubmit={handleCreateUser}>
-            <div className="bg-indigo-600 p-8 text-white relative">
+            <div className="bg-linear-to-br from-orange-600/80 to-orange-500/80 p-8 text-white relative">
               <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
                 <UserPlus className="w-32 h-32" />
               </div>
@@ -471,7 +510,7 @@ export function UserManagement({
               <Button
                 type="submit"
                 disabled={isCreating}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold h-11 px-8 shadow-lg shadow-indigo-200 active:scale-95"
+                className="inline-flex h-11 items-center gap-2 px-5 py-3 rounded-2xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 active:scale-95"
               >
                 {isCreating ? (
                   <>
@@ -640,7 +679,7 @@ export function UserManagement({
                 handleDeleteUser();
               }}
               disabled={isDeleting}
-              className="bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold h-11 px-8 shadow-lg shadow-red-100 active:scale-95"
+              className="bg-red-500! hover:bg-red-600! text-white rounded-xl font-bold h-11 px-8 shadow-lg shadow-red-100 active:scale-95"
             >
               {isDeleting ? (
                 <>

@@ -239,13 +239,13 @@ export function FeaturesManagement() {
                 Eliminar ({selectedIds.length})
               </button>
             )}
-            <button
+            {/* <button
               onClick={() => setShowBulkDialog(true)}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
             >
               <Upload className="w-4 h-4" />
               Carga Masiva
-            </button>
+            </button> */}
             <button
               onClick={() => setShowCreateDialog(true)}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 active:scale-95"
